@@ -16,7 +16,7 @@ export default function Home() {
                     color: "white",
                 }}
             >
-                <h1 className="movingText max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+                <h1 className="movingText max-w-xs text-4xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
                     Hello World!!!
                 </h1>
             </main>

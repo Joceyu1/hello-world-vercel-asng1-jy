@@ -29,8 +29,8 @@ body {
   position: absolute;
 
   animation:
-          moveHorizontal 4s linear infinite alternate,
-          moveVertical 3s linear infinite alternate;
+          moveHorizontal 10s linear infinite alternate,
+          moveVertical 8s linear infinite alternate;
 }
 
 @keyframes moveHorizontal {
@@ -39,7 +39,7 @@ body {
   }
 
   to {
-    left: calc(100vw - 230px);
+    left: calc(100vw - 400px);
   }
 }
 
