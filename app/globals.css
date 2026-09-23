@@ -28,11 +28,12 @@ body {
 .movingText {
   position: absolute;
 
-  animation:
+  /*animation:
           moveHorizontal 10s linear infinite alternate,
           moveVertical 8s linear infinite alternate;
+   */
 }
-
+/*
 @keyframes moveHorizontal {
   from {
     left: 0;
@@ -52,3 +53,4 @@ body {
     top: calc(100vh - 60px);
   }
 }
+ */
