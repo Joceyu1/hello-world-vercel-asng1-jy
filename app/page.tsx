@@ -1,7 +1,12 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export default async function Home() {
-    const {data, error } = await supabase.from("class_schedule").select(("*"))
+    const supabase = await createClient();
+
+    const {data, error} = await supabase
+        .from("class_schedule")
+        .select("*");
 
     if (error) {
         console.error(error);
@@ -33,6 +38,12 @@ export default async function Home() {
                         boxSizing: "border-box",
                     }}
                 >
+                    <nav style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
+                        <Link href="/login">Log in</Link>
+                        <Link href="/profile">Profile</Link>
+                        <Link href="/members">Members</Link>
+                    </nav>
+
                     <h1 style={{
                         fontSize: "36px",
                         fontWeight: "bold",
