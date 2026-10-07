@@ -317,7 +317,7 @@ test("timeout plus cleanup outage leaves only a private pending reservation", as
   });
   assert.deepEqual(await app.publishNote(input), {
     ok: false,
-    message: "The AI took too long. Please try again.",
+    message: "The AI service didn't respond in time. Please wait a minute before trying again. Reference: AI-TIMEOUT",
   });
   assert.equal(app.rows.get(generationId).status, "pending");
   assert.equal(app.rows.get(generationId).caption, undefined);

@@ -105,7 +105,7 @@ async function expectProviderFailure(
       "Provider failures should produce a sanitized diagnostic",
     );
     assert.equal(diagnostic.httpStatus, httpStatus);
-    assert.equal(diagnostic.model, "gemini-flash-latest");
+    assert.equal(diagnostic.model, "gemini-3.5-flash-lite");
     assert.ok(
       Object.keys(diagnostic).every((key) =>
         ["httpStatus", "model", "providerStatus", "reason"].includes(key),
@@ -119,7 +119,7 @@ test("Gemini request uses a private header and preserves the actual prompt and m
     t.mock.method(globalThis, "fetch", async (url, options) => {
       assert.equal(
         new URL(url).pathname,
-        "/v1beta/models/gemini-flash-latest:generateContent",
+        "/v1beta/models/gemini-3.5-flash-lite:generateContent",
       );
       assert.equal(new URL(url).searchParams.has("key"), false);
       assert.equal(options.headers["x-goog-api-key"], "test-only-key");
@@ -136,10 +136,9 @@ test("Gemini request uses a private header and preserves the actual prompt and m
         required: ["title", "caption"],
       });
       assert.equal(Object.hasOwn(body.generationConfig, "temperature"), false);
-      assert.equal(
-        Object.hasOwn(body.generationConfig, "thinkingConfig"),
-        false,
-      );
+      assert.deepEqual(body.generationConfig.thinkingConfig, {
+        thinkingLevel: "MINIMAL",
+      });
       return Response.json({
         candidates: [
           {
@@ -155,7 +154,7 @@ test("Gemini request uses a private header and preserves the actual prompt and m
     assert.deepEqual(await generateNote("A full test prompt"), {
       title: "City rhythm",
       caption: "A new B-side.",
-      model: "gemini-flash-latest",
+      model: "gemini-3.5-flash-lite",
     });
   });
 });
@@ -186,6 +185,39 @@ test("an explicit Gemini 2.5 Flash override retains its supported sampling and t
     assert.equal(
       (await generateNote("A full test prompt")).model,
       "gemini-2.5-flash",
+    );
+  });
+});
+test("an explicit Flash alias uses model defaults without assuming its resolved version", async (t) => {
+  await withKey(async () => {
+    process.env.GEMINI_MODEL = "gemini-flash-latest";
+    t.mock.method(globalThis, "fetch", async (url, options) => {
+      assert.equal(
+        new URL(url).pathname,
+        "/v1beta/models/gemini-flash-latest:generateContent",
+      );
+      const body = JSON.parse(options.body);
+      assert.equal(body.generationConfig.responseMimeType, "application/json");
+      assert.equal(Object.hasOwn(body.generationConfig, "temperature"), false);
+      assert.equal(
+        Object.hasOwn(body.generationConfig, "thinkingConfig"),
+        false,
+      );
+      return Response.json({
+        candidates: [
+          {
+            content: {
+              parts: [
+                { text: '{"title":"City rhythm","caption":"A new B-side."}' },
+              ],
+            },
+          },
+        ],
+      });
+    });
+    assert.equal(
+      (await generateNote("A full test prompt")).model,
+      "gemini-flash-latest",
     );
   });
 });
@@ -352,7 +384,7 @@ test("a temporary 503 retries the same request after one second and publishes th
     assert.deepEqual(await result, {
       title: "City rhythm",
       caption: "A new B-side.",
-      model: "gemini-flash-latest",
+      model: "gemini-3.5-flash-lite",
     });
     assert.equal(fetchMock.mock.callCount(), 2);
     assert.equal(log.mock.callCount(), 0);
@@ -441,12 +473,137 @@ test("provider timeouts are not retried", async (t) => {
     assert.equal(fetchMock.mock.callCount(), 1);
   });
 });
+test("a valid provider response after 35 seconds finishes before the shared 45-second deadline", async (t) => {
+  await withKey(async () => {
+    t.mock.timers.enable({ apis: ["setTimeout"] });
+    const deadline = new AbortController();
+    const timeoutMock = t.mock.method(AbortSignal, "timeout", (duration) => {
+      assert.equal(duration, 45000);
+      setTimeout(
+        () =>
+          deadline.abort(
+            new DOMException("The operation timed out", "TimeoutError"),
+          ),
+        duration,
+      );
+      return deadline.signal;
+    });
+    const fetchMock = t.mock.method(globalThis, "fetch", async (_, options) => {
+      assert.equal(options.signal, deadline.signal);
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(
+          () =>
+            resolve(
+              Response.json({
+                candidates: [
+                  {
+                    content: {
+                      parts: [
+                        {
+                          text: '{"title":"City rhythm","caption":"A new B-side."}',
+                        },
+                      ],
+                    },
+                  },
+                ],
+              }),
+            ),
+          35000,
+        );
+        options.signal.addEventListener(
+          "abort",
+          () => {
+            clearTimeout(timer);
+            reject(options.signal.reason);
+          },
+          { once: true },
+        );
+      });
+    });
+    let settled = false;
+    const outcome = generateNote("A full test prompt").then(
+      (value) => {
+        settled = true;
+        return { value };
+      },
+      (error) => {
+        settled = true;
+        return { error };
+      },
+    );
+    await nextTurn();
+    t.mock.timers.tick(30000);
+    await nextTurn();
+    assert.equal(
+      settled,
+      false,
+      "The old 30-second deadline must not abort this request",
+    );
+    assert.equal(deadline.signal.aborted, false);
+    t.mock.timers.tick(5000);
+    await nextTurn();
+    const result = await outcome;
+    assert.equal(result.error, undefined);
+    assert.deepEqual(result.value, {
+      title: "City rhythm",
+      caption: "A new B-side.",
+      model: "gemini-3.5-flash-lite",
+    });
+    assert.equal(timeoutMock.mock.callCount(), 1);
+    assert.equal(fetchMock.mock.callCount(), 1);
+  });
+});
+test("the shared 45-second deadline stops a stalled provider without extra attempts", async (t) => {
+  await withKey(async () => {
+    t.mock.timers.enable({ apis: ["setTimeout"] });
+    const failure = new DOMException("The operation timed out", "TimeoutError");
+    const deadline = new AbortController();
+    const timeoutMock = t.mock.method(AbortSignal, "timeout", (duration) => {
+      assert.equal(duration, 45000);
+      setTimeout(() => deadline.abort(failure), duration);
+      return deadline.signal;
+    });
+    const fetchMock = t.mock.method(
+      globalThis,
+      "fetch",
+      async (_, options) =>
+        new Promise((_, reject) => {
+          assert.equal(options.signal, deadline.signal);
+          options.signal.addEventListener(
+            "abort",
+            () => reject(options.signal.reason),
+            { once: true },
+          );
+        }),
+    );
+    let settled = false;
+    const outcome = generateNote("prompt").then(
+      (value) => {
+        settled = true;
+        return { value };
+      },
+      (error) => {
+        settled = true;
+        return { error };
+      },
+    );
+    await nextTurn();
+    t.mock.timers.tick(44999);
+    await nextTurn();
+    assert.equal(settled, false);
+    t.mock.timers.tick(1);
+    await nextTurn();
+    assert.equal((await outcome).error, failure);
+    assert.equal(timeoutMock.mock.callCount(), 1);
+    assert.equal(fetchMock.mock.callCount(), 1);
+  });
+});
 test("an expired shared deadline prevents a retry and retains the original timeout", async (t) => {
   await withKey(async () => {
     const failure = new DOMException("The operation timed out", "TimeoutError");
     const deadline = new AbortController();
     const timeoutMock = t.mock.method(AbortSignal, "timeout", (duration) => {
-      assert.equal(duration, 30000);
+      assert.equal(duration, 45000);
       return deadline.signal;
     });
     const fetchMock = t.mock.method(globalThis, "fetch", async (_, options) => {

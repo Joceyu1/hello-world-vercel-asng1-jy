@@ -43,11 +43,11 @@ The selected project is `https://qrgjqpdvvbwmjpthpmlo.supabase.co`. The existing
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public Supabase publishable key (legacy anon key also works)                    |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Server-only Supabase service role/secret key for AI reservation and publication |
 | `GEMINI_API_KEY`                       | Server-only Gemini API key from Google AI Studio                                |
-| `GEMINI_MODEL`                         | Optional supported Gemini model; defaults to `gemini-flash-latest`              |
+| `GEMINI_MODEL`                         | Optional supported Gemini model; defaults to `gemini-3.5-flash-lite`             |
 
 Keep service role and Gemini keys server-only; never add a `NEXT_PUBLIC_` prefix. Set public variables before building, because Next.js embeds them in the browser bundle. No Spotify credential is needed for the curated search links. Restricted environments need `qrgjqpdvvbwmjpthpmlo.supabase.co` and `generativelanguage.googleapis.com` allowed; npm installation needs `registry.npmjs.org`.
 
-The default model follows `gemini-flash-latest`, as used in [Google's current SDK quickstart](https://github.com/googleapis/js-genai#quickstart). No `GEMINI_MODEL` variable is required in Vercel. The alias uses the model's default sampling and thinking settings; explicit Gemini 2.5 Flash overrides retain their legacy controls. Structured JSON output is still validated before publication.
+The default uses `gemini-3.5-flash-lite` with `thinkingLevel: "MINIMAL"` for short liner notes. [Google describes Flash-Lite as its fastest, lowest-cost model in this family](https://github.com/google-gemini/cookbook), and its [generateContent reference](https://github.com/google-gemini/cookbook/blob/main/quickstarts/Get_started_Generate_Content.ipynb) documents structured JSON and minimal thinking for this model. No `GEMINI_MODEL` variable is required in Vercel. Explicit Gemini 2.5 Flash overrides retain their legacy controls; other overrides use model defaults. Structured JSON output is still validated before publication. Model availability and latency for the deployment's key need a live check.
 
 ### Data and security
 
@@ -87,7 +87,9 @@ Successful live generation, persisted voting, and two-account RLS checks still r
 
 If Gemini rejects a generation request, the studio now shows a plain explanation and a safe `AI-<HTTP status>-<provider code>` reference. The matching Vercel runtime log starts with `[SIDE B] Gemini request rejected` and contains only the HTTP status, model, and recognized status/reason codes. Raw provider messages, metadata, prompts, and credentials are excluded from both the message and log. Authentication, model availability, account setup, quota, and service failures have different explanations. Whitespace around the Gemini key or model is trimmed; no credentials are sent in URL query strings.
 
-For an HTTP 503 service outage, the server retries the same Gemini request after one and two seconds, at most three provider requests for one studio submission. All attempts share one 30-second deadline and one database reservation; only validated successful output is published. Authentication, quota, missing-model errors, and ambiguous transport failures are not retried. Persistent outages keep the note private and display the final safe reference code. Failed submissions still count toward the five-attempt daily budget. This follows [Google's retry guidance](https://github.com/google-gemini/cookbook/blob/main/quickstarts/Error_handling.ipynb).
+For an HTTP 503 service outage, the server retries the same Gemini request after one and two seconds, at most three provider requests for one studio submission. All attempts share one 45-second deadline and one database reservation; only validated successful output is published. Authentication, quota, missing-model errors, and ambiguous transport failures are not retried. Persistent outages keep the note private and display the final safe reference code. Failed submissions still count toward the five-attempt daily budget. This follows [Google's retry guidance](https://github.com/google-gemini/cookbook/blob/main/quickstarts/Error_handling.ipynb).
+
+The home page declares a 60-second execution limit, which Next.js applies to its Server Actions. This leaves 15 seconds outside the provider deadline for authentication, reservation, saving, failure cleanup, and rendering. The setting fits the 60-second limit of deployments without extended function durations; verify the actual Vercel deployment setting rather than assuming Fluid Compute is enabled. The studio displays a polite pending message and disables inputs while recording. A provider timeout keeps the reservation private and shows `AI-TIMEOUT`; no timeout retries or fabricated notes are published.
 
 ## Vercel deployment and submission
 

@@ -14,6 +14,8 @@ import {
   trackPlatformLabel,
 } from "@/lib/music/artists";
 export const dynamic = "force-dynamic";
+// Leave time around the 45-second AI deadline for authentication and saving.
+export const maxDuration = 60;
 const trackCount = artists.reduce(
   (total, artist) => total + artist.songs.length,
   0,

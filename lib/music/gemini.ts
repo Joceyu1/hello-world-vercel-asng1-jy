@@ -33,7 +33,7 @@ const providerReasons = new Set([
 async function requestGemini(url: string, options: RequestInit) {
   // All attempts share one deadline and the exact same request. Retry only an
   // explicit service outage, never an ambiguous timeout or a quota/key error.
-  const signal = AbortSignal.timeout(30000);
+  const signal = AbortSignal.timeout(45000);
   const request = { ...options, signal };
   let response = await fetch(url, request);
   for (let retry = 0; response.status === 503 && retry < 2; retry++) {
@@ -125,7 +125,7 @@ export async function generateNote(prompt: string) {
     throw new Error(
       "The AI studio is not connected yet. Please try again later.",
     );
-  const model = process.env.GEMINI_MODEL?.trim() || "gemini-flash-latest";
+  const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash-lite";
   if (!/^gemini-[a-z0-9.-]+$/.test(model))
     throw new Error("The AI studio configuration needs attention.");
   const response = await requestGemini(
@@ -138,11 +138,13 @@ export async function generateNote(prompt: string) {
         generationConfig: {
           responseMimeType: "application/json",
           maxOutputTokens: 2048,
-          // The current Flash alias uses the model's defaults. Only explicit
-          // 2.5 overrides receive these legacy sampling and thinking controls.
-          ...(model.startsWith("gemini-2.5-flash")
-            ? { thinkingConfig: { thinkingBudget: 0 }, temperature: 0.85 }
-            : {}),
+          // Short liner notes need minimal reasoning. Apply model-specific
+          // controls only to known compatible models, never unknown aliases.
+          ...(model === "gemini-3.5-flash-lite"
+            ? { thinkingConfig: { thinkingLevel: "MINIMAL" } }
+            : model.startsWith("gemini-2.5-flash")
+              ? { thinkingConfig: { thinkingBudget: 0 }, temperature: 0.85 }
+              : {}),
           responseSchema: {
             type: "OBJECT",
             properties: {

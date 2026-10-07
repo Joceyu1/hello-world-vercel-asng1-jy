@@ -80,7 +80,7 @@ export async function publishNote(
       ok: false,
       message:
         error instanceof Error && error.name === "TimeoutError"
-          ? "The AI took too long. Please try again."
+          ? "The AI service didn't respond in time. Please wait a minute before trying again. Reference: AI-TIMEOUT"
           : error instanceof Error
             ? error.message
             : "Could not publish your note.",

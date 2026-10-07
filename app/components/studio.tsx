@@ -67,7 +67,7 @@ export default function Studio({ signedIn }: { signedIn: boolean }) {
         <div className="form-heading">
           <span className="live-dot" /> RECORD SOMETHING NEW
         </div>
-        <fieldset disabled={!signedIn || pending}>
+        <fieldset disabled={!signedIn || pending} aria-busy={pending}>
           <label htmlFor="artist">01 — Choose your inspiration</label>
           <select
             id="artist"
@@ -153,7 +153,9 @@ export default function Studio({ signedIn }: { signedIn: boolean }) {
           role="status"
           aria-live="polite"
         >
-          {message}
+          {pending
+            ? "Making your note. This can take up to a minute. Keep this page open."
+            : message}
           {success && (
             <>
               {" "}
