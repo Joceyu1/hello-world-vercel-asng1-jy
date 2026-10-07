@@ -6,7 +6,29 @@ import ts from "typescript";
 const db = new PGlite();
 const alice = "11111111-1111-4111-8111-111111111111";
 const bob = "22222222-2222-4222-8222-222222222222";
+const migrationDirectory = new URL("../supabase/migrations/", import.meta.url);
+const initialMigration = new URL("202610070001_side_b.sql", migrationDirectory);
 let publishedId;
+async function createLegacyFixture(database, profileColumns) {
+  await database.exec(`
+    create role anon; create role authenticated; create role service_role bypassrls;
+    create schema auth; create schema storage;
+    create table auth.users(id uuid primary key);
+    create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+    grant usage on schema auth, storage to anon, authenticated, service_role;
+    create table public.profiles(id uuid primary key references auth.users(id), ${profileColumns});
+    create table public.class_schedule(id int primary key, course_name text);
+    create table public.legacy_private(id int);
+    create table storage.buckets(id text primary key, name text, public boolean, file_size_limit int, allowed_mime_types text[]);
+    create table storage.objects(id uuid primary key default gen_random_uuid(), bucket_id text, name text);
+    create function storage.foldername(text) returns text[] language sql immutable as $$ select string_to_array($1, '/') $$;
+    alter table storage.objects enable row level security;
+    grant select, insert, update, delete on storage.objects to anon, authenticated;
+    create policy old_broad_policy on storage.objects for all to public using (true) with check (true);
+    insert into auth.users values('${alice}'),('${bob}');
+    insert into public.class_schedule values(1,'Existing schedule');
+  `);
+}
 async function as(role, user, sql, params = []) {
   await db.exec("begin");
   try {
@@ -23,25 +45,14 @@ async function as(role, user, sql, params = []) {
   }
 }
 before(async () => {
-  await db.exec(`
-    create role anon; create role authenticated; create role service_role bypassrls;
-    create schema auth; create schema storage;
-    create table auth.users(id uuid primary key);
-    create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-    grant usage on schema auth, storage to anon, authenticated, service_role;
-    create table public.profiles(id uuid primary key references auth.users(id), first_name text, last_name text, avatar_path text);
-    create table public.class_schedule(id int primary key, course_name text);
-    create table public.legacy_private(id int);
-    create table storage.buckets(id text primary key, name text, public boolean, file_size_limit int, allowed_mime_types text[]);
-    create table storage.objects(id uuid primary key default gen_random_uuid(), bucket_id text, name text);
-    create function storage.foldername(text) returns text[] language sql immutable as $$ select string_to_array($1, '/') $$;
-    alter table storage.objects enable row level security;
-    grant select, insert, update, delete on storage.objects to anon, authenticated;
-    create policy old_broad_policy on storage.objects for all to public using (true) with check (true);
-    insert into auth.users values('${alice}'),('${bob}');
-    insert into public.class_schedule values(1,'Existing schedule');
-  `);
-  const migrationDirectory = new URL("../supabase/migrations/", import.meta.url);
+  await createLegacyFixture(
+    db,
+    "firstname text not null, lastname text not null, avatar_path text",
+  );
+  await db.query(
+    "insert into public.profiles(id,firstname,lastname) values($1,'Existing','Listener')",
+    [bob],
+  );
   const migrations = readdirSync(migrationDirectory)
     .filter((name) => name.endsWith(".sql"))
     .sort();
@@ -68,6 +79,100 @@ before(async () => {
 after(async () => {
   await db.close();
 });
+test("legacy profile names are normalized without losing existing data or NOT NULL constraints", async () => {
+  const { rows: columns } = await db.query(
+    "select column_name, is_nullable from information_schema.columns where table_schema='public' and table_name='profiles' order by ordinal_position",
+  );
+  assert.deepEqual(columns, [
+    { column_name: "id", is_nullable: "NO" },
+    { column_name: "first_name", is_nullable: "NO" },
+    { column_name: "last_name", is_nullable: "NO" },
+    { column_name: "avatar_path", is_nullable: "YES" },
+  ]);
+  const { rows } = await db.query(
+    "select id,first_name,last_name from public.profiles order by id",
+  );
+  assert.deepEqual(rows, [
+    { id: alice, first_name: "", last_name: "" },
+    { id: bob, first_name: "Existing", last_name: "Listener" },
+  ]);
+});
+
+test("canonical profile columns also support existing data and required-name provisioning", async () => {
+  const canonical = new PGlite();
+  try {
+    await createLegacyFixture(
+      canonical,
+      "first_name text not null, last_name text not null, avatar_path text",
+    );
+    await canonical.query(
+      "insert into public.profiles(id,first_name,last_name) values($1,'Already','Canonical')",
+      [bob],
+    );
+    await canonical.exec(readFileSync(initialMigration, "utf8"));
+    assert.deepEqual(
+      (await canonical.query("select id,first_name,last_name from public.profiles order by id")).rows,
+      [
+        { id: alice, first_name: "", last_name: "" },
+        { id: bob, first_name: "Already", last_name: "Canonical" },
+      ],
+    );
+    const newcomer = "44444444-4444-4444-8444-444444444444";
+    await canonical.query("insert into auth.users values($1)", [newcomer]);
+    assert.deepEqual(
+      (await canonical.query("select first_name,last_name from public.profiles where id=$1", [newcomer])).rows,
+      [{ first_name: "", last_name: "" }],
+    );
+  } finally {
+    await canonical.close();
+  }
+});
+
+for (const invalid of [
+  {
+    label: "ambiguous",
+    columns: "firstname text not null, lastname text not null, last_name text, avatar_path text",
+    error: /profiles contains both lastname and last_name/i,
+  },
+  {
+    label: "missing",
+    columns: "firstname text not null, avatar_path text",
+    error: /profiles must contain last_name or lastname/i,
+  },
+]) {
+  test(`${invalid.label} profile names reject and roll back the whole migration`, async () => {
+    const invalidDb = new PGlite();
+    try {
+      await createLegacyFixture(invalidDb, invalid.columns);
+      await invalidDb.exec(
+        "create policy original_profile_access on public.profiles for select to authenticated using (true)",
+      );
+      const before = await invalidDb.query(
+        "select column_name from information_schema.columns where table_schema='public' and table_name='profiles' order by ordinal_position",
+      );
+      await assert.rejects(
+        () => invalidDb.exec(readFileSync(initialMigration, "utf8")),
+        invalid.error,
+      );
+      await invalidDb.exec("rollback");
+      assert.deepEqual(
+        (await invalidDb.query("select column_name from information_schema.columns where table_schema='public' and table_name='profiles' order by ordinal_position")).rows,
+        before.rows,
+      );
+      assert.deepEqual(
+        (await invalidDb.query("select to_regclass('public.generations') as generations,to_regclass('public.votes') as votes")).rows,
+        [{ generations: null, votes: null }],
+      );
+      assert.deepEqual(
+        (await invalidDb.query("select policyname from pg_policies where schemaname='public' and tablename='profiles'")).rows,
+        [{ policyname: "original_profile_access" }],
+      );
+    } finally {
+      await invalidDb.close();
+    }
+  });
+}
+
 test("migration enables RLS on every public application table", async () => {
   const { rows } = await db.query(
     "select relname from pg_class join pg_namespace n on n.oid = relnamespace where n.nspname='public' and relkind='r' and not relrowsecurity",
@@ -249,6 +354,10 @@ test("profiles are provisioned automatically and users can only read and edit th
     (await as("authenticated", newcomer, "select id from public.profiles")).rows
       .length,
     1,
+  );
+  assert.deepEqual(
+    (await as("authenticated", newcomer, "select first_name,last_name from public.profiles")).rows,
+    [{ first_name: "", last_name: "" }],
   );
 });
 test("avatar restrictive guard defeats old permissive policies while allowing owner upserts", async () => {

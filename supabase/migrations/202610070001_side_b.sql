@@ -1,5 +1,35 @@
 begin;
 
+-- Assignment #3 schemas used both name spellings. Normalize legacy columns
+-- before creating SIDE B tables, retaining their values and constraints.
+do $$
+declare
+  legacy_name text;
+  canonical_name text;
+  has_legacy boolean;
+  has_canonical boolean;
+begin
+  for legacy_name, canonical_name in
+    select * from (values ('firstname', 'first_name'), ('lastname', 'last_name')) as names(legacy_name, canonical_name)
+  loop
+    select exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'profiles' and column_name = legacy_name
+    ) into has_legacy;
+    select exists (
+      select 1 from information_schema.columns
+      where table_schema = 'public' and table_name = 'profiles' and column_name = canonical_name
+    ) into has_canonical;
+    if has_legacy and has_canonical then
+      raise exception 'profiles contains both % and %. Resolve the duplicate name columns before running SIDE B setup.', legacy_name, canonical_name;
+    elsif has_legacy then
+      execute format('alter table public.profiles rename column %I to %I', legacy_name, canonical_name);
+    elsif not has_canonical then
+      raise exception 'profiles must contain % or % before running SIDE B setup.', canonical_name, legacy_name;
+    end if;
+  end loop;
+end; $$;
+
 create table public.generations (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -97,12 +127,14 @@ create policy own_profile_update on public.profiles for update to authenticated 
 -- Provision profiles server-side. Browsers cannot create someone else's profile.
 create function public.side_b_new_user() returns trigger language plpgsql security definer set search_path = '' as $$
 begin
-  insert into public.profiles(id) values(new.id) on conflict(id) do nothing;
+  insert into public.profiles(id, first_name, last_name)
+  values(new.id, '', '') on conflict(id) do nothing;
   return new;
 end; $$;
 revoke all on function public.side_b_new_user() from public, anon, authenticated;
 create trigger side_b_profile_created after insert on auth.users for each row execute function public.side_b_new_user();
-insert into public.profiles(id) select id from auth.users on conflict(id) do nothing;
+insert into public.profiles(id, first_name, last_name)
+select id, '', '' from auth.users on conflict(id) do nothing;
 
 alter table public.class_schedule enable row level security;
 revoke all on public.class_schedule from anon, authenticated;
