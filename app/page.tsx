@@ -6,8 +6,18 @@ import Catalog from "./components/catalog";
 import Studio from "./components/studio";
 import Wall from "./components/wall";
 import { getFeed } from "@/lib/music/feed";
-import { getDailyArtist, spotifySearch } from "@/lib/music/artists";
+import {
+  artists,
+  genres,
+  getDailyArtist,
+  trackSearch,
+  trackPlatformLabel,
+} from "@/lib/music/artists";
 export const dynamic = "force-dynamic";
+const trackCount = artists.reduce(
+  (total, artist) => total + artist.songs.length,
+  0,
+);
 export default async function Home() {
   const { notes, signedIn, issue } = await getFeed();
   const dailyArtist = getDailyArtist();
@@ -53,10 +63,10 @@ export default async function Home() {
           </div>
           <div className="hero-stats">
             <span>
-              <strong>10</strong> ARTISTS
+              <strong>{artists.length}</strong> ARTISTS
             </span>
             <span>
-              <strong>100</strong> ESSENTIAL TRACKS
+              <strong>{trackCount}</strong> ESSENTIAL TRACKS
             </span>
             <span>
               <strong>∞</strong> NEW INSPIRATION
@@ -108,14 +118,11 @@ export default async function Home() {
         </div>
       </section>
       <div className="genre-strip">
-        <span>HIP HOP</span>
-        <b>✳</b>
-        <span>NEW JACK SWING</span>
-        <b>✳</b>
-        <span>RAVE CULTURE</span>
-        <b>✳</b>
-        <span>NYC / LA / ATL</span>
-        <b>✳</b>
+        {genres.map((genre) => (
+          <span className="genre-strip-item" key={genre}>
+            {genre} <b aria-hidden="true">✳</b>
+          </span>
+        ))}
       </div>
       <CityScenes />
       <div className="daily-drop">
@@ -130,11 +137,11 @@ export default async function Home() {
           A daily rotation from the collection. Come back for a new pick.
         </span>
         <a
-          href={spotifySearch(dailyArtist.name, dailyArtist.songs[0])}
+          href={trackSearch(dailyArtist, dailyArtist.songs[0])}
           target="_blank"
           rel="noopener noreferrer"
         >
-          Find on Spotify{" "}
+          Find on {trackPlatformLabel(dailyArtist)}{" "}
           <span aria-hidden="true">
             <ArrowIcon />
           </span>

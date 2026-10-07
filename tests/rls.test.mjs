@@ -1,7 +1,8 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
+import ts from "typescript";
 const db = new PGlite();
 const alice = "11111111-1111-4111-8111-111111111111";
 const bob = "22222222-2222-4222-8222-222222222222";
@@ -40,28 +41,29 @@ before(async () => {
     insert into auth.users values('${alice}'),('${bob}');
     insert into public.class_schedule values(1,'Existing schedule');
   `);
-  await db.exec(
-    readFileSync(
-      new URL(
-        "../supabase/migrations/202610070001_side_b.sql",
-        import.meta.url,
-      ),
-      "utf8",
-    ),
-  );
-  const reservation = await as(
-    "service_role",
-    null,
-    "select public.reserve_generation($1,'tribe','Golden-hour stroll','Riverside Park','A saved full prompt') as id",
-    [alice],
-  );
-  publishedId = reservation.rows[0].id;
-  await as(
-    "service_role",
-    null,
-    "update public.generations set title='City rhythm', caption='An original AI note.', model='test-model', status='published' where id=$1",
-    [publishedId],
-  );
+  const migrationDirectory = new URL("../supabase/migrations/", import.meta.url);
+  const migrations = readdirSync(migrationDirectory)
+    .filter((name) => name.endsWith(".sql"))
+    .sort();
+  for (const migration of migrations) {
+    await db.exec(readFileSync(new URL(migration, migrationDirectory), "utf8"));
+    if (migration === "202610070001_side_b.sql") {
+      // Existing data must survive every later migration, just as in production.
+      const reservation = await as(
+        "service_role",
+        null,
+        "select public.reserve_generation($1,'tribe','Golden-hour stroll','Riverside Park','A saved full prompt') as id",
+        [alice],
+      );
+      publishedId = reservation.rows[0].id;
+      await as(
+        "service_role",
+        null,
+        "update public.generations set title='City rhythm', caption='An original AI note.', model='test-model', status='published' where id=$1",
+        [publishedId],
+      );
+    }
+  }
 });
 after(async () => {
   await db.close();
@@ -340,4 +342,78 @@ test("old policies cannot permit extra avatar paths or deletion", async () => {
     "delete from storage.objects where bucket_id='avatars' returning id",
   );
   assert.equal(deleted.rows.length, 0);
+});
+
+test("catalog expansion preserves existing published generations", async () => {
+  const { rows } = await as(
+    "anon",
+    null,
+    "select id, artist_id, prompt, title, caption, model from public.generations where id=$1",
+    [publishedId],
+  );
+  assert.deepEqual(rows, [{
+    id: publishedId,
+    artist_id: "tribe",
+    prompt: "A saved full prompt",
+    title: "City rhythm",
+    caption: "An original AI note.",
+    model: "test-model",
+  }]);
+});
+
+test("expanded artists can reserve notes and unknown artists remain rejected", async () => {
+  const { rows } = await as(
+    "service_role",
+    null,
+    "select public.reserve_generation($1,'mary-j-blige','mood','scene','A new artist prompt') as id",
+    [bob],
+  );
+  const reservation = await db.query(
+    "select artist_id, status from public.generations where id=$1",
+    [rows[0].id],
+  );
+  assert.deepEqual(reservation.rows, [{ artist_id: "mary-j-blige", status: "pending" }]);
+  await assert.rejects(
+    () => as(
+      "service_role",
+      null,
+      "select public.reserve_generation($1,'unknown-artist','mood','scene','prompt')",
+      [bob],
+    ),
+    /generations_artist_id_check/,
+  );
+  assert.equal(
+    (await as("anon", null, "select id from public.generations")).rows.length,
+    1,
+  );
+});
+
+test("database artist whitelist exactly matches all 30 catalog artists", async () => {
+  // Use the actual catalog export rather than maintaining another copied list.
+  const compiled = ts.transpileModule(
+    readFileSync(new URL("../lib/music/artists.ts", import.meta.url), "utf8"),
+    { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } },
+  );
+  const catalogExports = {};
+  new Function("exports", compiled.outputText)(catalogExports);
+  const artistIds = catalogExports.artists.map((artist) => artist.id).sort();
+  assert.equal(artistIds.length, 30);
+  const { rows } = await db.query(
+    "select pg_get_constraintdef(oid) as definition from pg_constraint where conrelid='public.generations'::regclass and conname='generations_artist_id_check'",
+  );
+  const allowedIds = [...rows[0].definition.matchAll(/'([^']+)'::text/g)]
+    .map((match) => match[1])
+    .sort();
+  assert.deepEqual(allowedIds, artistIds);
+  // Verify every catalog ID is accepted, without consuming users' daily quotas.
+  await db.exec("begin; set local role service_role");
+  try {
+    const inserted = await db.query(
+      "insert into public.generations(user_id,artist_id,mood,scene,prompt) select $1::uuid, artist_id, 'mood', 'scene', 'prompt' from unnest($2::text[]) as catalog(artist_id) returning artist_id",
+      [bob, artistIds],
+    );
+    assert.deepEqual(inserted.rows.map((row) => row.artist_id).sort(), artistIds);
+  } finally {
+    await db.exec("rollback");
+  }
 });

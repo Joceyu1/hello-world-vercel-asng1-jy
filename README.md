@@ -1,15 +1,15 @@
 # SIDE B
 
-A 90s music discovery club with a graffiti-and-alleyway visual identity inspired by NYC, Los Angeles, and Atlanta street culture. The collection combines hip hop, new jack swing, and rave; the AI studio turns an artist, mood, and city scene into an original short mixtape liner note. Signed-in listeners can create notes and cast one upvote or downvote per note.
+A 90s music discovery club with a graffiti-and-alleyway visual identity inspired by NYC, Los Angeles, and Atlanta street culture. The 30-artist collection spans hip hop, new jack swing, R&B, techno, rave, Eurodance, and Eurobeat / Hi-NRG; the AI studio turns an artist, mood, and city scene into an original short mixtape liner note. Signed-in listeners can create notes and cast one upvote or downvote per note.
 
-The street edition uses original photographic-style scene artwork, overlapping photo prints, wheatpasted flyer cards, textured paper, and hand-lettered headings. Its visual references include H.O.T., TLC, EYC, Bobby Brown, and L.A. Boyz music-video styling. Images are clearly identified as generated fictional scenes, not artist portraits or archival video stills; provenance is recorded in `public/images/README.md`.
+The street edition uses original photographic-style scene artwork, overlapping photo prints, wheatpasted flyer cards, textured paper, and hand-lettered headings. Its visual references include H.O.T., TLC, EYC, Bobby Brown, and L.A. Boyz music-video styling. Street-scene images are clearly identified as generated fictional environments; provenance is recorded in `public/images/README.md`.
 
 ## Product decisions
 
-- **A reason to return:** a daily track rotation, new community notes, and crowd favorites. Artist biographies and ten curated essentials per artist give each AI note real musical context.
+- **A reason to return:** a daily track rotation, new community notes, and crowd favorites. Artist biographies and curated essentials give each AI note real musical context. The collection has 30 artists and 300 tracks, with ten essentials per artist. L.A. Boyz uses the user's requested selections plus additional songs checked against published album and compilation tracklists.
 - **A reason to share:** public notes have a clear title, a recognizable musical inspiration, and a NYC scene. Anyone can browse; authentication is reserved for creating and voting.
 - **Beyond a generic caption generator:** constrained creative inputs make results relevant to a student’s actual weekend. Visible prompts explain how a note was made. A limited daily generation budget and one immutable ballot per note favor thoughtful contributions over spam.
-- **Deliberate scope:** AI-generated text, not fake tracks or invented event listings. No artist impersonation or copied lyrics. Songs are hand-picked essentials with Spotify search links, not Spotify API results or popularity rankings. Some later 90s favorites accompany the early-90s roots.
+- **Deliberate scope:** AI-generated text, not fake tracks or invented event listings. No artist impersonation or copied lyrics. Songs are hand-picked essentials with Spotify search links, not Spotify API results or popularity rankings. L.A. Boyz uses YouTube search links because the user identified those recordings as YouTube-only. Some later 90s favorites accompany the early-90s roots.
 
 ## Local development
 
@@ -24,11 +24,15 @@ npm run dev
 
 Without Supabase settings the catalog still runs, while account and community features display honest unavailable states. No fake generations or vote counts are seeded. Display fonts (Anton, Permanent Marker, and Space Mono) are bundled from Fontsource; runtime Google Fonts access is unnecessary. Street-scene images are bundled locally and served through Next.js image optimization.
 
+Artist cards use artist-specific photographs and clearly labeled sleeve images, replacing the repeated street scenery and vinyl overlays. Captions identify individual members when a photograph does not show the whole group. Source links, photographer credits, and verified Creative Commons/public-domain terms accompany the Commons photographs; no license is invented for album artwork. Photos may show later performances, not early-90s archival scenes. Twenty-four primary Commons photographs and a Stanley Huang fallback are bundled locally. Five sleeve images are sourced from the Apple Music catalog CDN; L.A. Boyz uses the user's supplied 8days/Mediacorp trio-photo URL, with the explicitly captioned member portrait as fallback. Their publisher URLs are narrowly allowed by Next.js image optimization. Missing images display an explicit unavailable state.
+
+Source and attribution records live in `lib/music/artist-photos.ts`; `public/images/artists/README.md` records provenance. Public photo and discography research works in this cloud environment with Node 24's supported `NODE_USE_ENV_PROXY=1`, which honors the platform HTTP/HTTPS proxy. All five Apple Music sleeve images loaded in the production browser check. The supplied L.A. Boyz trio-photo request still returned proxy HTTP 403 here; its bundled Stanley Huang fallback loaded with the correct caption and credit. Research and image-CDN domains were saved in the environment configuration draft for review; saving does not apply or publish those settings. Production Vercel uses its own networking; no photo API key is required.
+
 ## Supabase setup
 
 The selected project is `https://qrgjqpdvvbwmjpthpmlo.supabase.co`. The existing Assignment #3 tables must be present: `profiles` with `id`, `first_name`, `last_name`, and `avatar_path`; and `class_schedule`. Inspect the live schema and existing policies before applying changes. No live database connection or administrative credential was available during implementation.
 
-1. Review `supabase/migrations/202610070001_side_b.sql`, then run it once using Supabase SQL Editor or your existing migrations workflow. It is transactional and intentionally has no destructive data resets.
+1. Review and apply the SQL files in `supabase/migrations` in filename order using Supabase SQL Editor or your existing migrations workflow. If `202610070001_side_b.sql` already ran, apply only the new `202610070002_expanded_catalog.sql`: it widens the allowed artist IDs to all 30 while preserving existing generations and RLS. Both migrations are transactional and intentionally have no destructive data resets.
 2. Configure Google authentication. In Supabase Authentication URL Configuration, allow the development callback and the exact Vercel `/auth/callback` URL. Enable the Google provider with its OAuth credentials; retain the existing provider configuration if already working.
 3. Add these values to `.env.local` and the Vercel project’s applicable environments:
 
@@ -63,9 +67,9 @@ npm run build
 npm run start
 ```
 
-`npm test` covers input/output validation and applies the actual SQL migration to an isolated PostgreSQL-compatible PGlite fixture. Server-action tests also verify authentication before administrative access, server-resolved ownership, exact prompt/output persistence, and private failure cleanup. Its security checks include unauthenticated/forged voting, duplicate ballots, private identities, pending visibility, quota exhaustion, owner-only profiles, legacy schedule access, and private avatars even under an old broad policy. This validates the migration’s logic against the documented schema, not the remote project’s current schema.
+`npm test` covers input/output validation and applies the actual SQL migrations in order to an isolated PostgreSQL-compatible PGlite fixture. Catalog expansion tests check that existing rows survive, all 30 artist IDs work, and unknown IDs fail. Server-action tests also verify authentication before administrative access, server-resolved ownership, exact prompt/output persistence, and private failure cleanup. Its security checks include unauthenticated/forged voting, duplicate ballots, private identities, pending visibility, quota exhaustion, owner-only profiles, legacy schedule access, and private avatars even under an old broad policy. These validate logic against documented fixtures, not the remote project's current schema.
 
-Browser smoke checks verified the production homepage, ten artists/100 Spotify links, genre filters, searches/empty results, guest studio restrictions, profile-to-login redirect, and a 390px mobile layout without horizontal overflow.
+Production browser checks verified 30 artists, 300 music links (290 Spotify and ten YouTube searches), all seven genre filters, searches/empty results, track disclosures, source credits, keyboard focus, guest studio restrictions, and profile-to-login redirects. All 30 cards displayed usable artist imagery, including the explicitly captioned L.A. Boyz fallback. Layouts at 320, 390, 541, 768, and 1440 pixels had no horizontal overflow. Live Supabase authentication, Gemini generation, and Vercel deployment remain unverified here.
 
 After applying the live migration and credentials, complete these required checks:
 

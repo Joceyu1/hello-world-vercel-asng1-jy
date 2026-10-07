@@ -1,8 +1,19 @@
 "use client";
 import ArrowIcon from "@/app/components/arrow-icon";
-import Image from "next/image";
+import ArtistPortrait from "@/app/components/artist-portrait";
 import { useState, type CSSProperties } from "react";
-import { artists, spotifySearch } from "@/lib/music/artists";
+import {
+  artists,
+  genres,
+  trackSearch,
+  trackPlatformLabel,
+} from "@/lib/music/artists";
+
+const trackCount = artists.reduce(
+  (total, artist) => total + artist.songs.length,
+  0,
+);
+
 export default function Catalog() {
   const [genre, setGenre] = useState("All sounds");
   const [search, setSearch] = useState("");
@@ -25,14 +36,18 @@ export default function Catalog() {
           </h2>
         </div>
         <p>
-          Ten artists. A hundred essentials.
+          {artists.length} artists. {trackCount} essentials.{" "}
           <br />
           Find your next repeat listen.
         </p>
       </div>
       <div className="catalog-controls">
-        <div className="filter-tabs" aria-label="Filter artists">
-          {["All sounds", "Hip hop", "New jack swing", "Rave"].map((g) => (
+        <div
+          className="filter-tabs"
+          role="group"
+          aria-label="Filter artists by genre"
+        >
+          {["All sounds", ...genres].map((g) => (
             <button
               type="button"
               key={g}
@@ -47,6 +62,7 @@ export default function Catalog() {
           <span className="sr-only">Search artists or songs</span>
           <span aria-hidden="true">⌕</span>
           <input
+            type="search"
             placeholder="Find an artist or track…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -54,8 +70,19 @@ export default function Catalog() {
         </label>
       </div>
       <p className="catalog-note">
-        Curated essentials, including later 90s favorites. Spotify links open
-        search results; these are not live popularity rankings.
+        Hand-picked essentials from the late 80s and 90s, with a few later
+        favorites. Spotify and YouTube links open search results; these are not
+        live popularity rankings. Artist photographs may be from later years.
+      </p>
+      <p
+        className="catalog-results"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {filtered.length} of {artists.length} artists
+        {genre !== "All sounds" ? ` · ${genre}` : " · All sounds"}
+        {search.trim() ? ` · Matching “${search.trim()}”` : ""}
       </p>
       <div className="artist-grid">
         {filtered.map((artist) => (
@@ -64,29 +91,12 @@ export default function Catalog() {
             key={artist.id}
             style={{ "--record-color": artist.color } as CSSProperties}
           >
-            <div className={`record-art art-${artist.id}`} aria-hidden="true">
-              <Image
-                src={`/images/side-b-${artist.genre === "Rave" ? "la" : artist.genre === "New jack swing" ? "atl" : "nyc"}.png`}
-                alt=""
-                fill
-                sizes="(max-width: 540px) 88vw, (max-width: 800px) 43vw, 29vw"
-                className="artist-street-photo"
-                style={{ objectFit: "cover" }}
-              />
-              <span className="record-code">
-                SIDE B / {String(artists.indexOf(artist) + 1).padStart(2, "0")}
-              </span>
-              <div className="mini-vinyl">
-                <span>
-                  {artist.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .slice(0, 4)}
-                </span>
-              </div>
-              <span className="record-genre">{artist.genre}</span>
-            </div>
+            <ArtistPortrait
+              artistId={artist.id}
+              name={artist.name}
+              genre={artist.genre}
+              number={artists.indexOf(artist) + 1}
+            />
             <div className="artist-info">
               <div className="artist-meta">
                 <span>{artist.hometown}</span>
@@ -96,7 +106,8 @@ export default function Catalog() {
               <p>{artist.bio}</p>
               <details>
                 <summary>
-                  10 essential tracks{" "}
+                  {artist.songs.length} essential tracks
+                  {artist.trackPlatform === "youtube" ? " · YouTube" : ""}{" "}
                   <span aria-hidden="true">
                     <ArrowIcon />
                   </span>
@@ -106,10 +117,10 @@ export default function Catalog() {
                     <li key={song}>
                       <span>{String(index + 1).padStart(2, "0")}</span>
                       <a
-                        href={spotifySearch(artist.name, song)}
+                        href={trackSearch(artist, song)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`Find ${song} by ${artist.name} on Spotify (opens a new tab)`}
+                        aria-label={`Find ${song} by ${artist.name} on ${trackPlatformLabel(artist)} (opens a new tab)`}
                       >
                         {song}
                         <span aria-hidden="true">

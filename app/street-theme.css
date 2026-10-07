@@ -322,8 +322,20 @@ body {
   color: #fcf7e8;
   border-top: 2px solid #161619;
   border-bottom: 2px solid #161619;
-  padding: 18px 24px;
+  padding: 19px 5%;
   font-size: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 25px;
+  white-space: normal;
+}
+
+.genre-strip-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 25px;
+  white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .genre-strip b {
@@ -526,6 +538,31 @@ body {
   border-color: #20201d;
 }
 
+.catalog-controls {
+  align-items: flex-start;
+}
+
+.catalog-controls .filter-tabs {
+  flex: 1;
+}
+
+.catalog-controls .search-box {
+  flex: 0 0 265px;
+  min-width: 0;
+}
+
+.catalog-results {
+  color: var(--street-blue);
+  font:
+    700 10px/1.7 "Space Mono",
+    "Courier New",
+    monospace;
+  padding-bottom: 14px;
+  margin-bottom: 26px;
+  border-bottom: 1px dashed #afa58e;
+  overflow-wrap: anywhere;
+}
+
 .search-box {
   background: #f8f3e8;
   border: 1px solid #807a6a;
@@ -542,25 +579,75 @@ body {
 }
 
 .record-art {
-  height: 236px;
+  height: 285px;
   border-bottom: 2px solid var(--foreground);
   background-image: none;
 }
 
-.artist-street-photo {
+.artist-portrait {
   object-fit: cover;
-  filter: saturate(0.75) contrast(1.08);
+  filter: contrast(1.03);
+}
+
+.art-tribe {
+  background-color: #171817;
+}
+
+.art-tribe .record-code {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+}
+
+.artist-photo-placeholder,
+.portrait-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  padding: 27px;
+  background: var(--record-color);
+  color: #252322;
+  background-image: radial-gradient(#25232229 0.9px, transparent 0.9px);
+  background-size: 7px 7px;
+}
+
+.artist-photo-placeholder > span,
+.portrait-placeholder > span {
+  overflow-wrap: anywhere;
+  font:
+    38px/1.2 "Permanent Marker",
+    "Anton",
+    sans-serif;
+}
+
+.artist-photo-placeholder small,
+.portrait-placeholder small {
+  font:
+    700 10px/1.7 "Space Mono",
+    "Courier New",
+    monospace;
 }
 
 .record-art::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #0005, transparent 40%, #0006);
+  background: linear-gradient(transparent 68%, #0007);
   pointer-events: none;
 }
 
-.record-code,
+.record-code {
+  display: inline-block;
+  padding: 6px 8px;
+  background: #181719d9;
+  color: #fffaf0;
+  border: 1px solid #fffaf05c;
+  z-index: 2;
+}
+
 .record-genre {
   color: #fffaf0;
   background: #19191ad9;
@@ -569,36 +656,12 @@ body {
   z-index: 2;
 }
 
-.record-code {
-  display: inline-block;
-}
-
 .record-genre {
   background: var(--record-color);
   color: #1f211a;
   border: 1px solid #1f211a;
-  transform: rotate(-3deg);
-}
-
-.mini-vinyl,
-.art-guy .mini-vinyl,
-.art-orbital .mini-vinyl {
-  z-index: 2;
-  width: 122px;
-  height: 122px;
-  right: 15px;
-  left: auto;
-  top: auto;
-  bottom: 18px;
-  box-shadow: 5px 6px 0 #10101175;
-  border: 1px solid #767970;
-}
-
-.mini-vinyl span {
-  width: 54px;
-  height: 54px;
-  border-width: 4px;
-  font-size: 22px;
+  font-size: 9px;
+  transform: rotate(-2deg);
 }
 
 .artist-info {
@@ -621,6 +684,38 @@ body {
 .artist-info > p {
   color: #595448;
   font-size: 13px;
+}
+
+.photo-credit {
+  color: #756b58;
+  font:
+    9px/1.7 "Space Mono",
+    "Courier New",
+    monospace;
+  margin: -2px 0 18px;
+  overflow-wrap: anywhere;
+}
+
+.photo-credit a {
+  color: #3f52a4;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.photo-caption {
+  display: block;
+  margin-bottom: 3px;
+  color: #595448;
+  font-size: 10px;
+}
+
+.photo-credit a:hover {
+  color: #202f79;
+}
+
+.artist-card > .photo-credit {
+  padding: 10px 21px 0;
+  margin: 0;
 }
 
 .artist-info summary {
@@ -949,6 +1044,9 @@ body {
   .scene-source-note {
     font-size: 8px;
   }
+  .catalog-controls .search-box {
+    flex: auto;
+  }
   .artist-info > p {
     min-height: 96px;
   }
@@ -1028,7 +1126,14 @@ body {
   }
   .genre-strip {
     font-size: 9px;
-    padding: 15px 20px;
+    padding: 17px 6%;
+    gap: 11px 15px;
+  }
+  .genre-strip-item {
+    gap: 15px;
+  }
+  .genre-strip b {
+    font-size: 16px;
   }
   .scene-manifesto {
     padding: 44px 6% 35px;
@@ -1065,7 +1170,7 @@ body {
     gap: 12px;
   }
   .record-art {
-    height: 230px;
+    height: 280px;
   }
   .artist-info h3 {
     font-size: 32px;

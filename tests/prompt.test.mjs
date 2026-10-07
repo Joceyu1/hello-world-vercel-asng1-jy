@@ -18,7 +18,9 @@ execFileSync("./node_modules/.bin/tsc", [
   "--skipLibCheck",
 ]);
 const require = createRequire(import.meta.url);
-const { artists, spotifySearch } = require(join(out, "artists.js"));
+const { artists, genres, spotifySearch, trackSearch, trackPlatformLabel } = require(
+  join(out, "artists.js"),
+);
 const { buildPrompt, parseNote, validateInput } = require(
   join(out, "prompt.js"),
 );
@@ -29,13 +31,75 @@ const input = {
   scene: "Riverside Park",
   idea: "A study break with friends",
 };
-test("catalog contains ten distinct artists and ten tracks per artist", () => {
-  assert.equal(artists.length, 10);
-  assert.equal(new Set(artists.map((a) => a.id)).size, 10);
+const newArtistIds = [
+  "tlc",
+  "xscape",
+  "swv",
+  "en-vogue",
+  "jodeci",
+  "hi-five",
+  "la-boyz",
+  "eyc",
+  "bobby-brown",
+  "inner-city",
+  "underground-resistance",
+  "mary-j-blige",
+  "jeff-mills",
+  "2-unlimited",
+  "snap",
+  "culture-beat",
+  "real-mccoy",
+  "dead-or-alive",
+  "dave-rodgers",
+  "sinitta",
+];
+test("catalog preserves the original artists and contains thirty distinct artists", () => {
+  const originalIds = [
+    "tribe",
+    "de-la",
+    "wu-tang",
+    "nas",
+    "guy",
+    "bell-biv",
+    "janet",
+    "prodigy",
+    "orbital",
+    "808",
+  ];
+  assert.equal(artists.length, 30);
+  assert.equal(new Set(artists.map((a) => a.id)).size, 30);
+  assert.deepEqual(
+    [...artists.map((a) => a.id)].sort(),
+    [...originalIds, ...newArtistIds].sort(),
+  );
+});
+test("catalog contains three hundred essentials and ten distinct tracks per artist", () => {
+  assert.equal(artists.reduce((sum, a) => sum + a.songs.length, 0), 300);
   for (const a of artists) {
-    assert.equal(a.songs.length, 10);
-    assert.equal(new Set(a.songs).size, 10);
+    const expected = 10;
+    assert.equal(a.songs.length, expected, a.name);
+    assert.equal(
+      new Set(a.songs.map((song) => song.trim().toLowerCase())).size,
+      expected,
+      a.name,
+    );
+    assert.ok(a.songs.every((song) => song === song.trim() && song.length > 0));
   }
+});
+test("genre filters cover every catalog genre including the expanded dance and R&B sounds", () => {
+  assert.deepEqual([...genres], [
+    "Hip hop",
+    "New jack swing",
+    "R&B",
+    "Techno",
+    "Rave",
+    "Eurodance",
+    "Eurobeat / Hi-NRG",
+  ]);
+  assert.deepEqual(
+    [...new Set(artists.map((a) => a.genre))].sort(),
+    [...genres].sort(),
+  );
 });
 test("Spotify links encode artist and track rather than fabricate track IDs", () => {
   const link = new URL(spotifySearch("A Tribe Called Quest", "Can I Kick It?"));
@@ -45,6 +109,26 @@ test("Spotify links encode artist and track rather than fabricate track IDs", ()
     "/search/A Tribe Called Quest Can I Kick It?",
   );
 });
+test("L.A. Boyz uses YouTube searches with the artist and user-curated Mandarin title", () => {
+  const artist = artists.find((a) => a.id === "la-boyz");
+  const link = new URL(trackSearch(artist, "That's The Way (就是這樣)"));
+  assert.equal(artist.trackPlatform, "youtube");
+  assert.equal(link.hostname, "www.youtube.com");
+  assert.equal(link.pathname, "/results");
+  assert.equal(
+    link.searchParams.get("search_query"),
+    "L.A. Boyz That's The Way (就是這樣)",
+  );
+  assert.equal(trackPlatformLabel(artist), "YouTube");
+});
+test("artists without a platform override retain Spotify search links", () => {
+  const artist = artists.find((a) => a.id === "tribe");
+  assert.equal(
+    trackSearch(artist, "Can I Kick It?"),
+    spotifySearch("A Tribe Called Quest", "Can I Kick It?"),
+  );
+  assert.equal(trackPlatformLabel(artist), "Spotify");
+});
 test("prompt retains input, real songs, and creative safety boundaries", () => {
   const prompt = buildPrompt(input);
   assert.match(prompt, /A Tribe Called Quest/);
@@ -53,6 +137,16 @@ test("prompt retains input, real songs, and creative safety boundaries", () => {
   assert.match(prompt, /untrusted creative input/);
   assert.match(prompt, /No lyrics/);
   assert.match(prompt, /Electric Relaxation/);
+});
+test("every added artist is accepted by the studio and appears in its saved prompt", () => {
+  for (const artistId of newArtistIds) {
+    const generationInput = { ...input, artistId };
+    const artist = validateInput(generationInput);
+    assert.equal(artist.id, artistId);
+    const prompt = buildPrompt(generationInput);
+    assert.ok(prompt.includes(`Artist inspiration: ${artist.name} (${artist.genre}).`));
+    assert.ok(prompt.includes(artist.songs[0]));
+  }
 });
 test("invalid artist, mood, scene, null and overlong ideas are rejected", () => {
   for (const value of [
