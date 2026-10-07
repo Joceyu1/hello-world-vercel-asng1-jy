@@ -169,7 +169,13 @@ function harness(options = {}) {
         },
       },
     },
-    { GEMINI_API_KEY: options.missingKey ? undefined : "test-only-key" },
+    {
+      GEMINI_API_KEY: Object.hasOwn(options, "apiKey")
+        ? options.apiKey
+        : options.missingKey
+          ? undefined
+          : "test-only-key",
+    },
   );
   return {
     ...actions,
@@ -227,9 +233,12 @@ test("missing configuration and AI credentials stop before reservation", async (
   assert.equal((await disconnected.publishNote(input)).ok, false);
   assert.equal((await disconnected.submitVote(generationId, 1)).ok, false);
   assert.deepEqual(disconnected.operations(), []);
-  const missingKey = harness({ missingKey: true });
-  assert.match((await missingKey.publishNote(input)).message, /not connected/);
-  assert.deepEqual(missingKey.operations(), ["userClient", "authenticate"]);
+  for (const options of [{ missingKey: true }, { apiKey: " \n\t " }]) {
+    const missingKey = harness(options);
+    assert.match((await missingKey.publishNote(input)).message, /not connected/);
+    assert.deepEqual(missingKey.operations(), ["userClient", "authenticate"]);
+    assert.equal(missingKey.rows.size, 0);
+  }
 });
 
 test("quota and reservation failures do not call Gemini or publish a row", async () => {

@@ -83,6 +83,8 @@ After applying the live migration and credentials, complete these required check
 
 Live OAuth, Gemini generation, and remote RLS validation remain unrun until credentials and the migration are supplied.
 
+If Gemini rejects a generation request, the studio now shows a plain explanation and a safe `AI-<HTTP status>-<provider code>` reference. The matching Vercel runtime log starts with `[SIDE B] Gemini request rejected` and contains only the HTTP status, model, and recognized status/reason codes. Raw provider messages, metadata, prompts, and credentials are excluded from both the message and log. Authentication, model availability, account setup, quota, and service failures have different explanations. Whitespace around the Gemini key or model is trimmed; no credentials are sent in URL query strings.
+
 ## Vercel deployment and submission
 
 Pushing this code to GitHub does not apply the Supabase migration or configure API credentials. A connected Vercel project may automatically deploy a push; verify its actual status before treating the site as updated. No authenticated Vercel deployment-management tools were available in this workspace.

@@ -22,7 +22,7 @@ export async function publishNote(
     if (authError || !user)
       return { ok: false, message: "Sign in to create a mixtape note." };
     const prompt = buildPrompt(input);
-    if (!process.env.GEMINI_API_KEY)
+    if (!process.env.GEMINI_API_KEY?.trim())
       return {
         ok: false,
         message: "The AI studio is not connected yet. Please try again later.",
