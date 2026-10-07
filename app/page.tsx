@@ -1,90 +1,142 @@
-import { createClient } from "@/lib/supabase/server";
+import ArrowIcon from "@/app/components/arrow-icon";
 import Link from "next/link";
-
+import Catalog from "./components/catalog";
+import Studio from "./components/studio";
+import Wall from "./components/wall";
+import { getFeed } from "@/lib/music/feed";
+import { getDailyArtist, spotifySearch } from "@/lib/music/artists";
+export const dynamic = "force-dynamic";
 export default async function Home() {
-    const supabase = await createClient();
-
-    const {data, error} = await supabase
-        .from("class_schedule")
-        .select("*");
-
-    if (error) {
-        console.error(error);
-    }
-
-    return (
-        <div
-            style={{
-                width: "100vw",
-                minHeight: "100vh",
-            }}
-        >
-            <div
-                style={{
-                    width: "100vw",
-                    minHeight: "100vh",
-                }}
-            >
-                <main
-                    style={{
-                        minHeight: "100vh",
-                        width: "100%",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        background: "linear-gradient(135deg, hotpink, purple, cyan)",
-                        color: "white",
-                        padding: "30px",
-                        boxSizing: "border-box",
-                    }}
-                >
-                    <nav style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
-                        <Link href="/login">Log in</Link>
-                        <Link href="/profile">Profile</Link>
-                        <Link href="/members">Members</Link>
-                    </nav>
-
-                    <h1 style={{
-                        fontSize: "36px",
-                        fontWeight: "bold",
-                        textAlign: "center",
-                    }}
-                    >
-                        My Class Schedule Fall 2026:
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "20px",
-                                alignItems: "center",
-                                textAlign: "center",
-                                width: "100%",
-                                maxWidth: "1000px",
-                                marginTop: "30px",
-                            }}
-                        >
-                            {data?.map((course) => (
-                                <div
-                                    key={course.id}
-                                    style={{
-                                        padding: "20px",
-                                        borderRadius: "16px",
-                                        backgroundColor: "rgba(255, 255, 255, 0.2)",
-                                        width: "80vw",
-                                        maxWidth: "1000px",
-                                        fontFamily: '"Palatino Linotype", Palatino, "Book Antiqua", serif',
-                                    }}
-                                >
-                                    <h2>{course.course_name}</h2>
-                                    <p>{course.day}</p>
-                                    <p>{course.time}</p>
-                                    <p>{course.location}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </h1>
-                </main>
-            </div>
+  const { notes, signedIn, issue } = await getFeed();
+  const dailyArtist = getDailyArtist();
+  return (
+    <>
+      <section className="hero">
+        <div className="hero-copy">
+          <p className="eyebrow">
+            <span className="live-dot" /> NYC ROOTS. 90s SOUL. NEW FREQUENCIES.
+          </p>
+          <h1>
+            Old school.
+            <br />
+            <span>New energy.</span>
+          </h1>
+          <p className="hero-description">
+            From Queens beats to warehouse bass.
+            <br />
+            Dig into the 90s, make a mixtape moment,
+            <br className="desktop-break" /> and let the crowd decide what hits.
+          </p>
+          <div className="hero-actions">
+            <a className="button button-lime" href="#collection">
+              Dig into the collection{" "}
+              <span aria-hidden="true">
+                <ArrowIcon />
+              </span>
+            </a>
+            <a className="button button-outline" href="#studio">
+              Make a B-side <span aria-hidden="true">＋</span>
+            </a>
+          </div>
+          <div className="hero-stats">
+            <span>
+              <strong>10</strong> ARTISTS
+            </span>
+            <span>
+              <strong>100</strong> ESSENTIAL TRACKS
+            </span>
+            <span>
+              <strong>∞</strong> NEW INSPIRATION
+            </span>
+          </div>
         </div>
-    );
+        <div
+          className="hero-art"
+          aria-label="Decorative vinyl record and mixtape sleeve"
+        >
+          <div className="orbit-text" aria-hidden="true">
+            HIP HOP • NEW JACK SWING • RAVE •
+          </div>
+          <div className="hero-vinyl" aria-hidden="true">
+            <div className="vinyl-center">
+              <span>SIDE B</span>
+              <strong>90</strong>
+              <span>33⅓ RPM / STEREO</span>
+              <i />
+            </div>
+          </div>
+          <div className="record-sleeve" aria-hidden="true">
+            <span>
+              THE CITY
+              <br />
+              IS YOUR
+              <br />
+              DANCE FLOOR.
+            </span>
+            <div className="sleeve-footer">
+              VOL. 001{" "}
+              <b>
+                <ArrowIcon />
+              </b>
+            </div>
+          </div>
+          <div className="hero-sticker" aria-hidden="true">
+            NO SKIPS.
+            <br />
+            JUST VIBES.
+          </div>
+        </div>
+      </section>
+      <div className="genre-strip">
+        <span>HIP HOP</span>
+        <b>✳</b>
+        <span>NEW JACK SWING</span>
+        <b>✳</b>
+        <span>RAVE CULTURE</span>
+        <b>✳</b>
+        <span>MADE FOR YOUR NEXT CHAPTER</span>
+        <b>✳</b>
+      </div>
+      <div className="daily-drop">
+        <div>
+          <span className="eyebrow">TODAY’S NEEDLE DROP</span>
+          <p>
+            <strong>{dailyArtist.songs[0]}</strong>
+            <span> / {dailyArtist.name}</span>
+          </p>
+        </div>
+        <span className="daily-description">
+          A daily rotation from the collection. Come back for a new pick.
+        </span>
+        <a
+          href={spotifySearch(dailyArtist.name, dailyArtist.songs[0])}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Find on Spotify{" "}
+          <span aria-hidden="true">
+            <ArrowIcon />
+          </span>
+        </a>
+      </div>
+      <Catalog />
+      <Studio signedIn={signedIn} />
+      <Wall notes={notes} signedIn={signedIn} issue={issue} />
+      <section className="closing">
+        <span className="eyebrow">PASS THE AUX. KEEP THE CULTURE MOVING.</span>
+        <h2>
+          The next great B-side
+          <br />
+          could be yours.
+        </h2>
+        <Link
+          className="button button-lime"
+          href={signedIn ? "/#studio" : "/login"}
+        >
+          {signedIn ? "Back to the studio" : "Join the listening party"}{" "}
+          <ArrowIcon />
+        </Link>
+      </section>
+    </>
+  );
 }
