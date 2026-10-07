@@ -1,4 +1,5 @@
 import "server-only";
+import { setTimeout as delay } from "node:timers/promises";
 import { parseNote } from "./prompt";
 
 const providerStatuses = new Set([
@@ -28,6 +29,27 @@ const providerReasons = new Set([
   "RATE_LIMIT_EXCEEDED",
   "QUOTA_EXCEEDED",
 ]);
+
+async function requestGemini(url: string, options: RequestInit) {
+  // All attempts share one deadline and the exact same request. Retry only an
+  // explicit service outage, never an ambiguous timeout or a quota/key error.
+  const signal = AbortSignal.timeout(30000);
+  const request = { ...options, signal };
+  let response = await fetch(url, request);
+  for (let retry = 0; response.status === 503 && retry < 2; retry++) {
+    await response.body?.cancel().catch(() => {});
+    try {
+      await delay(1000 * 2 ** retry, undefined, { signal });
+    } catch (error) {
+      // Preserve TimeoutError so the action shows its existing timeout message.
+      if (signal.aborted) throw signal.reason;
+      throw error;
+    }
+    signal.throwIfAborted();
+    response = await fetch(url, request);
+  }
+  return response;
+}
 
 async function rejectProviderResponse(
   response: Response,
@@ -106,7 +128,7 @@ export async function generateNote(prompt: string) {
   const model = process.env.GEMINI_MODEL?.trim() || "gemini-flash-latest";
   if (!/^gemini-[a-z0-9.-]+$/.test(model))
     throw new Error("The AI studio configuration needs attention.");
-  const response = await fetch(
+  const response = await requestGemini(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: "POST",
@@ -131,7 +153,6 @@ export async function generateNote(prompt: string) {
           },
         },
       }),
-      signal: AbortSignal.timeout(30000),
       cache: "no-store",
     },
   );

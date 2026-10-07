@@ -87,6 +87,8 @@ Successful live generation, persisted voting, and two-account RLS checks still r
 
 If Gemini rejects a generation request, the studio now shows a plain explanation and a safe `AI-<HTTP status>-<provider code>` reference. The matching Vercel runtime log starts with `[SIDE B] Gemini request rejected` and contains only the HTTP status, model, and recognized status/reason codes. Raw provider messages, metadata, prompts, and credentials are excluded from both the message and log. Authentication, model availability, account setup, quota, and service failures have different explanations. Whitespace around the Gemini key or model is trimmed; no credentials are sent in URL query strings.
 
+For an HTTP 503 service outage, the server retries the same Gemini request after one and two seconds, at most three provider requests for one studio submission. All attempts share one 30-second deadline and one database reservation; only validated successful output is published. Authentication, quota, missing-model errors, and ambiguous transport failures are not retried. Persistent outages keep the note private and display the final safe reference code. Failed submissions still count toward the five-attempt daily budget. This follows [Google's retry guidance](https://github.com/google-gemini/cookbook/blob/main/quickstarts/Error_handling.ipynb).
+
 ## Vercel deployment and submission
 
 Pushing this code to GitHub does not apply the Supabase migration or configure API credentials. A connected Vercel project may automatically deploy a push; verify its actual status before treating the site as updated. No authenticated Vercel deployment-management tools were available in this workspace.

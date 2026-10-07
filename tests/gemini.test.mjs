@@ -5,6 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createRequire } from "node:module";
+import { setImmediate as nextTurn } from "node:timers/promises";
 const out = mkdtempSync(join(tmpdir(), "side-b-gemini-"));
 execFileSync("./node_modules/.bin/tsc", [
   "lib/music/gemini.ts",
@@ -39,16 +40,41 @@ async function withKey(callback) {
     else process.env.GEMINI_MODEL = oldModel;
   }
 }
+async function advanceRetryDelays(t, fetchMock, expectedAttempts) {
+  await nextTurn();
+  assert.equal(fetchMock.mock.callCount(), 1);
+  t.mock.timers.tick(999);
+  await nextTurn();
+  assert.equal(fetchMock.mock.callCount(), 1);
+  t.mock.timers.tick(1);
+  await nextTurn();
+  assert.equal(fetchMock.mock.callCount(), 2);
+  if (expectedAttempts === 2) return;
+  t.mock.timers.tick(1999);
+  await nextTurn();
+  assert.equal(fetchMock.mock.callCount(), 2);
+  t.mock.timers.tick(1);
+  await nextTurn();
+  assert.equal(fetchMock.mock.callCount(), 3);
+}
 async function expectProviderFailure(
   t,
   response,
   checks,
   prompt = "private prompt sentinel",
+  expectedAttempts = 1,
 ) {
   await withKey(async () => {
-    t.mock.method(globalThis, "fetch", async () => response);
+    if (expectedAttempts > 1) t.mock.timers.enable({ apis: ["setTimeout"] });
+    let httpStatus;
+    const fetchMock = t.mock.method(globalThis, "fetch", async (...args) => {
+      const current =
+        typeof response === "function" ? response(...args) : response;
+      httpStatus = current.status;
+      return current;
+    });
     const log = t.mock.method(console, "error", () => {});
-    await assert.rejects(
+    const rejection = assert.rejects(
       () => generateNote(prompt),
       (error) => {
         for (const check of checks) assert.match(error.message, check);
@@ -59,6 +85,10 @@ async function expectProviderFailure(
         return true;
       },
     );
+    if (expectedAttempts > 1)
+      await advanceRetryDelays(t, fetchMock, expectedAttempts);
+    await rejection;
+    assert.equal(fetchMock.mock.callCount(), expectedAttempts);
     assert.equal(log.mock.callCount(), 1);
     const logged = JSON.stringify(
       log.mock.calls.map(({ arguments: args }) => args),
@@ -74,7 +104,7 @@ async function expectProviderFailure(
       diagnostic,
       "Provider failures should produce a sanitized diagnostic",
     );
-    assert.equal(diagnostic.httpStatus, response.status);
+    assert.equal(diagnostic.httpStatus, httpStatus);
     assert.equal(diagnostic.model, "gemini-flash-latest");
     assert.ok(
       Object.keys(diagnostic).every((key) =>
@@ -260,12 +290,180 @@ test("quota exhaustion receives a usage diagnosis without a fabricated generatio
 test("an HTML provider outage becomes a safe diagnostic rather than a parse failure", async (t) => {
   await expectProviderFailure(
     t,
-    new Response(
-      "<html>private provider sentinel test-only-key private prompt sentinel</html>",
-      { status: 503, headers: { "content-type": "text/html" } },
-    ),
+    () =>
+      new Response(
+        "<html>private provider sentinel test-only-key private prompt sentinel</html>",
+        { status: 503, headers: { "content-type": "text/html" } },
+      ),
     [/unavailable|try again/i, /Reference: AI-503-UNKNOWN/],
+    "private prompt sentinel",
+    3,
   );
+});
+test("a temporary 503 retries the same request after one second and publishes the actual response", async (t) => {
+  await withKey(async () => {
+    t.mock.timers.enable({ apis: ["setTimeout"] });
+    const unavailable = Response.json(
+      { error: { status: "UNAVAILABLE" } },
+      { status: 503 },
+    );
+    const log = t.mock.method(console, "error", () => {});
+    let firstUrl, firstOptions;
+    const fetchMock = t.mock.method(
+      globalThis,
+      "fetch",
+      async (url, options) => {
+        if (!firstOptions) {
+          firstUrl = url;
+          firstOptions = options;
+          return unavailable;
+        }
+        assert.equal(
+          unavailable.bodyUsed,
+          true,
+          "The failed response body must be consumed or cancelled before retrying",
+        );
+        assert.equal(url, firstUrl);
+        assert.equal(
+          options,
+          firstOptions,
+          "Retries must preserve the complete request",
+        );
+        assert.equal(
+          options.signal,
+          firstOptions.signal,
+          "Retries must share the original deadline",
+        );
+        return Response.json({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  { text: '{"title":"City rhythm","caption":"A new B-side."}' },
+                ],
+              },
+            },
+          ],
+        });
+      },
+    );
+    const result = generateNote("A full test prompt");
+    await advanceRetryDelays(t, fetchMock, 2);
+    assert.deepEqual(await result, {
+      title: "City rhythm",
+      caption: "A new B-side.",
+      model: "gemini-flash-latest",
+    });
+    assert.equal(fetchMock.mock.callCount(), 2);
+    assert.equal(log.mock.callCount(), 0);
+  });
+});
+test("persistent 503 responses stop after three attempts and keep the safe provider reference", async (t) => {
+  const responses = [];
+  let firstUrl, firstOptions;
+  await expectProviderFailure(
+    t,
+    (url, options) => {
+      if (responses.length) {
+        assert.equal(
+          responses.at(-1).bodyUsed,
+          true,
+          "The previous response body must be consumed or cancelled",
+        );
+        assert.equal(url, firstUrl);
+        assert.equal(options, firstOptions);
+        assert.equal(options.signal, firstOptions.signal);
+      } else {
+        firstUrl = url;
+        firstOptions = options;
+      }
+      const response = Response.json(
+        {
+          error: {
+            status: "UNAVAILABLE",
+            message:
+              "private provider sentinel test-only-key private prompt sentinel",
+          },
+        },
+        { status: 503 },
+      );
+      responses.push(response);
+      return response;
+    },
+    [/unavailable/i, /Reference: AI-503-UNAVAILABLE/],
+    "private prompt sentinel",
+    3,
+  );
+  assert.equal(responses.length, 3);
+});
+test("a quota response following a 503 stops retries immediately", async (t) => {
+  let calls = 0;
+  await expectProviderFailure(
+    t,
+    () => {
+      calls += 1;
+      return Response.json(
+        {
+          error: { status: calls === 1 ? "UNAVAILABLE" : "RESOURCE_EXHAUSTED" },
+        },
+        { status: calls === 1 ? 503 : 429 },
+      );
+    },
+    [/Reference: AI-429-RESOURCE_EXHAUSTED/],
+    "private prompt sentinel",
+    2,
+  );
+  assert.equal(calls, 2);
+});
+test("thrown network errors are not retried", async (t) => {
+  await withKey(async () => {
+    const failure = new TypeError("fetch failed");
+    const fetchMock = t.mock.method(globalThis, "fetch", async () => {
+      throw failure;
+    });
+    await assert.rejects(
+      () => generateNote("prompt"),
+      (error) => error === failure,
+    );
+    assert.equal(fetchMock.mock.callCount(), 1);
+  });
+});
+test("provider timeouts are not retried", async (t) => {
+  await withKey(async () => {
+    const failure = new DOMException("The operation timed out", "TimeoutError");
+    const fetchMock = t.mock.method(globalThis, "fetch", async () => {
+      throw failure;
+    });
+    await assert.rejects(
+      () => generateNote("prompt"),
+      (error) => error === failure,
+    );
+    assert.equal(fetchMock.mock.callCount(), 1);
+  });
+});
+test("an expired shared deadline prevents a retry and retains the original timeout", async (t) => {
+  await withKey(async () => {
+    const failure = new DOMException("The operation timed out", "TimeoutError");
+    const deadline = new AbortController();
+    const timeoutMock = t.mock.method(AbortSignal, "timeout", (duration) => {
+      assert.equal(duration, 30000);
+      return deadline.signal;
+    });
+    const fetchMock = t.mock.method(globalThis, "fetch", async (_, options) => {
+      assert.equal(options.signal, deadline.signal);
+      deadline.abort(failure);
+      return Response.json(
+        { error: { status: "UNAVAILABLE" } },
+        { status: 503 },
+      );
+    });
+    await assert.rejects(
+      () => generateNote("prompt"),
+      (error) => error === failure,
+    );
+    assert.equal(timeoutMock.mock.callCount(), 1);
+    assert.equal(fetchMock.mock.callCount(), 1);
+  });
 });
 test("unknown provider reason, status, message, and metadata are never reflected or logged", async (t) => {
   const log = t.mock.method(console, "error", () => {});
