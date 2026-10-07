@@ -145,8 +145,8 @@ export default function Studio({ signedIn }: { signedIn: boolean }) {
           </Link>
         )}
         <p className="form-footnote">
-          Five attempts per day, resetting at midnight UTC. Generated notes go
-          straight to the community wall.
+          Five attempts per day, including failed requests. Resets at midnight
+          UTC. Published notes go straight to the community wall.
         </p>
         <p
           className={success ? "form-message success" : "form-message"}

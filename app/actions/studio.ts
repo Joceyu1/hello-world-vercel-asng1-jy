@@ -7,6 +7,21 @@ import { buildPrompt, type GenerationInput } from "@/lib/music/prompt";
 import { generateNote } from "@/lib/music/gemini";
 
 export type ActionResult = { ok: boolean; message: string };
+
+function dailyLimitMessage() {
+  const reset = new Date();
+  reset.setUTCHours(24, 0, 0, 0);
+  const resetTime = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(reset);
+  return `You've used your five daily studio attempts. Failed requests count too. Try again ${resetTime} (New York time).`;
+}
+
 export async function publishNote(
   input: GenerationInput,
 ): Promise<ActionResult> {
@@ -43,7 +58,7 @@ export async function publishNote(
         ok: false,
         message:
           reserveError.code === "P0001"
-            ? "You've used your five daily studio attempts. Come back tomorrow (UTC)."
+            ? dailyLimitMessage()
             : "Publishing is unavailable. Please try again later.",
       };
     reservedId = id;
