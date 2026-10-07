@@ -1,5 +1,7 @@
 import ArrowIcon from "@/app/components/arrow-icon";
 import Link from "next/link";
+import Image from "next/image";
+import CityScenes from "./components/city-scenes";
 import Catalog from "./components/catalog";
 import Studio from "./components/studio";
 import Wall from "./components/wall";
@@ -12,17 +14,28 @@ export default async function Home() {
   return (
     <>
       <section className="hero">
+        <div className="hero-photo-background" aria-hidden="true">
+          <Image
+            src="/images/side-b-nyc.png"
+            alt=""
+            fill
+            sizes="100vw"
+            preload
+            style={{ objectFit: "cover" }}
+          />
+        </div>
         <div className="hero-copy">
           <p className="eyebrow">
-            <span className="live-dot" /> NYC ROOTS. 90s SOUL. NEW FREQUENCIES.
+            <span className="live-dot" /> NYC / LA / ATL · STREET SOUL, CIRCA
+            THE 90s
           </p>
-          <h1>
-            Old school.
+          <h1 className="street-lettering">
+            Off the wall.
             <br />
-            <span>New energy.</span>
+            <span>On repeat.</span>
           </h1>
           <p className="hero-description">
-            From Queens beats to warehouse bass.
+            Graffiti on the walls. Bass down the block.
             <br />
             Dig into the 90s, make a mixtape moment,
             <br className="desktop-break" /> and let the crowd decide what hits.
@@ -50,40 +63,47 @@ export default async function Home() {
             </span>
           </div>
         </div>
-        <div
-          className="hero-art"
-          aria-label="Decorative vinyl record and mixtape sleeve"
-        >
-          <div className="orbit-text" aria-hidden="true">
-            HIP HOP • NEW JACK SWING • RAVE •
-          </div>
-          <div className="hero-vinyl" aria-hidden="true">
-            <div className="vinyl-center">
-              <span>SIDE B</span>
-              <strong>90</strong>
-              <span>33⅓ RPM / STEREO</span>
-              <i />
+        <div className="hero-art" aria-hidden="true">
+          <div className="street-poster">
+            <p className="poster-kicker">FOUND ON THE BLOCK / VOL. 002</p>
+            <div className="street-photo-card city-nyc">
+              <Image
+                src="/images/side-b-nyc.png"
+                alt=""
+                fill
+                sizes="(max-width: 540px) 64vw, 24vw"
+                style={{ objectFit: "cover" }}
+              />
+              <span className="photo-city-tag">NYC / CONCRETE SOUL</span>
             </div>
-          </div>
-          <div className="record-sleeve" aria-hidden="true">
-            <span>
-              THE CITY
+            <div className="street-photo-card city-la">
+              <Image
+                src="/images/side-b-la.png"
+                alt=""
+                fill
+                sizes="(max-width: 540px) 53vw, 20vw"
+                style={{ objectFit: "cover" }}
+              />
+              <span className="photo-city-tag">LA / WEST COAST COLOR</span>
+            </div>
+            <div className="street-photo-card city-atl">
+              <Image
+                src="/images/side-b-atl.png"
+                alt=""
+                fill
+                sizes="(max-width: 540px) 55vw, 20vw"
+                style={{ objectFit: "cover" }}
+              />
+              <span className="photo-city-tag">ATL / SOUTHERN SWING</span>
+            </div>
+            <div className="poster-stamp">
+              NO SKIPS.
               <br />
-              IS YOUR
-              <br />
-              DANCE FLOOR.
+              ALL SOUL.
+            </div>
+            <span className="poster-scribble">
+              meet me at the wall <ArrowIcon />
             </span>
-            <div className="sleeve-footer">
-              VOL. 001{" "}
-              <b>
-                <ArrowIcon />
-              </b>
-            </div>
-          </div>
-          <div className="hero-sticker" aria-hidden="true">
-            NO SKIPS.
-            <br />
-            JUST VIBES.
           </div>
         </div>
       </section>
@@ -94,9 +114,10 @@ export default async function Home() {
         <b>✳</b>
         <span>RAVE CULTURE</span>
         <b>✳</b>
-        <span>MADE FOR YOUR NEXT CHAPTER</span>
+        <span>NYC / LA / ATL</span>
         <b>✳</b>
       </div>
+      <CityScenes />
       <div className="daily-drop">
         <div>
           <span className="eyebrow">TODAY’S NEEDLE DROP</span>
@@ -123,7 +144,16 @@ export default async function Home() {
       <Studio signedIn={signedIn} />
       <Wall notes={notes} signedIn={signedIn} issue={issue} />
       <section className="closing">
-        <span className="eyebrow">PASS THE AUX. KEEP THE CULTURE MOVING.</span>
+        <div className="closing-photo-background" aria-hidden="true">
+          <Image
+            src="/images/side-b-atl.png"
+            alt=""
+            fill
+            sizes="100vw"
+            style={{ objectFit: "cover" }}
+          />
+        </div>
+        <span className="eyebrow">FROM THE BLOCK TO YOUR NEXT B-SIDE.</span>
         <h2>
           The next great B-side
           <br />

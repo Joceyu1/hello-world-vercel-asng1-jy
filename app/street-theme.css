@@ -1,0 +1,1097 @@
+/* SIDE B street edition: ink, wheatpaste, flash photography, and loud flyers. */
+:root {
+  --background: #eee9dd;
+  --foreground: #23221f;
+  --muted: #696456;
+  --line: #c8c0ad;
+  --lime: #d7ff39;
+  --street-blue: #2649dc;
+  --street-orange: #ff6838;
+  --street-paper: #f8f3e8;
+}
+
+body {
+  background-image:
+    radial-gradient(#53482c12 0.65px, transparent 0.65px),
+    linear-gradient(105deg, #d8d0bd25, transparent 35%, #cbbf9f20);
+  background-size:
+    5px 5px,
+    100% 100%;
+}
+
+:focus-visible {
+  outline-color: #f72593;
+}
+
+.site-header {
+  max-width: none;
+  min-height: 88px;
+  height: 88px;
+  border-bottom: 2px solid var(--foreground);
+  background: #f3eee3;
+}
+
+.wordmark {
+  font-style: italic;
+  font-size: 42px;
+  transform: rotate(-3deg);
+}
+
+.wordmark span {
+  background: var(--street-orange);
+  box-shadow: 3px 3px 0 var(--foreground);
+}
+
+.site-header nav {
+  font-family: "Space Mono", "Courier New", monospace;
+  font-size: 11px;
+  gap: 30px;
+}
+
+.site-header nav a:hover,
+.site-footer a:hover {
+  color: var(--street-blue);
+}
+
+.header-account {
+  border: 1.5px solid var(--foreground);
+  background: var(--lime);
+  box-shadow: 3px 3px 0 var(--foreground);
+  font-weight: 700;
+}
+
+.header-account:hover {
+  color: var(--foreground);
+  border-color: var(--foreground);
+  background: #e4ff7e;
+}
+
+.eyebrow {
+  color: var(--street-blue);
+  letter-spacing: 1.3px;
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  max-width: none;
+  padding: 74px 5% 66px;
+  min-height: 700px;
+  grid-template-columns: 1.12fr 1fr;
+  gap: 32px;
+  background: #282728;
+  color: var(--street-paper);
+}
+
+.hero-photo-background {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.hero-photo-background img {
+  object-position: center;
+  filter: saturate(0.75);
+}
+
+.hero-photo-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #141414ef 0%, #1a171bd1 44%, #14141968);
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent 0 3px,
+    #000 3px 4px
+  );
+}
+
+.hero .eyebrow {
+  display: inline-block;
+  color: #141414;
+  background: var(--lime);
+  padding: 7px 10px;
+  transform: rotate(-2deg);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.hero .live-dot {
+  background: #141414;
+}
+
+.hero h1 {
+  font-size: clamp(58px, 5.9vw, 91px);
+  letter-spacing: -2.5px;
+  line-height: 0.99;
+  margin: 26px 0 27px;
+  color: #fff8e7;
+}
+
+.hero h1.street-lettering {
+  font-family: "Permanent Marker", "Anton", Impact, sans-serif;
+  transform: rotate(-4deg);
+  transform-origin: left center;
+  text-shadow:
+    3px 3px 0 #19151d,
+    5px 5px 0 #fff8e754;
+}
+
+.hero h1 span {
+  color: var(--street-orange);
+  text-shadow:
+    3px 3px 0 #241f21,
+    6px 6px 0 #ff683846;
+}
+
+.hero-description {
+  color: #efe9dc;
+  font-size: 15px;
+  max-width: 430px;
+}
+
+.button {
+  border: 1.5px solid currentColor;
+  font-family: "Space Mono", "Courier New", monospace;
+  font-size: 10px;
+  box-shadow: 4px 4px 0 #171719;
+}
+
+.button-lime {
+  color: #161619;
+  border-color: #161619;
+}
+
+.button-outline {
+  color: #faf5e8;
+  border-color: #faf5e8;
+  background: #222226b0;
+}
+
+.button-outline:hover {
+  background: #faf5e8;
+  border-color: #faf5e8;
+  color: #161619;
+}
+
+.hero-stats {
+  color: #ddd5c7;
+  margin-top: 38px;
+  gap: 32px;
+}
+
+.hero-stats strong {
+  color: #faf5e8;
+  font-family: "Anton", Impact, sans-serif;
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.hero-art {
+  min-width: 0;
+  width: 100%;
+  min-height: 510px;
+  margin: 0;
+  align-self: center;
+}
+
+.street-poster {
+  position: relative;
+  width: 94%;
+  min-height: 510px;
+  padding: 20px;
+  background: #e9e1ce;
+  background-image: radial-gradient(#60553824 0.65px, transparent 0.65px);
+  background-size: 4px 4px;
+  color: #171718;
+  transform: rotate(3deg);
+  border: 2px solid #181818;
+  box-shadow: 9px 11px 0 #0008;
+}
+
+.poster-kicker {
+  font:
+    700 9px/1.5 "Space Mono",
+    "Courier New",
+    monospace;
+  letter-spacing: 0.8px;
+  border-bottom: 1px dashed #897e64;
+  padding-bottom: 12px;
+}
+
+.poster-scribble {
+  position: absolute;
+  left: 23px;
+  bottom: 19px;
+  font:
+    18px/1.4 "Permanent Marker",
+    "Anton",
+    sans-serif;
+  color: var(--street-blue);
+  transform: rotate(-4deg);
+}
+
+.poster-scribble .arrow-icon {
+  transform: rotate(90deg);
+  width: 18px;
+  height: 18px;
+}
+
+.street-photo-card {
+  position: absolute;
+  background: var(--street-paper);
+  border: 8px solid var(--street-paper);
+  border-bottom-width: 40px;
+  box-shadow: 9px 10px 0 #09090aa6;
+  width: 55%;
+  aspect-ratio: 1.13;
+}
+
+.street-photo-card img {
+  object-fit: cover;
+  filter: saturate(0.85) contrast(1.07);
+}
+
+.street-photo-card.city-nyc {
+  z-index: 2;
+  width: 65%;
+  top: 61px;
+  left: 4%;
+  transform: rotate(-9deg);
+}
+
+.street-photo-card.city-la {
+  z-index: 3;
+  top: 192px;
+  right: -5%;
+  transform: rotate(8deg);
+  border-color: #d7ff39;
+}
+
+.street-photo-card.city-atl {
+  z-index: 4;
+  width: 45%;
+  left: -4%;
+  top: 306px;
+  transform: rotate(-5deg);
+}
+
+.photo-city-tag {
+  position: absolute;
+  bottom: -30px;
+  left: 3px;
+  right: 3px;
+  color: #161619;
+  font:
+    700 11px/1.3 "Space Mono",
+    "Courier New",
+    monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.poster-stamp {
+  position: absolute;
+  z-index: 5;
+  bottom: 58px;
+  right: 6%;
+  padding: 13px 16px;
+  background: var(--street-blue);
+  color: white;
+  border: 2px solid #eee9dd;
+  box-shadow: 4px 4px 0 #141416;
+  transform: rotate(6deg);
+  font:
+    700 11px/1.5 "Space Mono",
+    "Courier New",
+    monospace;
+  text-align: center;
+}
+
+.genre-strip {
+  background: var(--street-blue);
+  color: #fcf7e8;
+  border-top: 2px solid #161619;
+  border-bottom: 2px solid #161619;
+  padding: 18px 24px;
+  font-size: 12px;
+}
+
+.genre-strip b {
+  color: var(--lime);
+}
+
+.scene-manifesto {
+  max-width: 1440px;
+  margin: auto;
+  padding: 65px 5% 42px;
+}
+
+.scene-manifesto h2 {
+  font-style: italic;
+}
+
+.scene-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 30px;
+}
+
+.scene-heading h2 span {
+  color: var(--street-blue);
+}
+
+.scene-heading > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.city-scenes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 30px;
+}
+
+.city-scene {
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  height: auto;
+  border: 2px solid var(--foreground);
+  box-shadow: 5px 5px 0 var(--foreground);
+  background: var(--street-paper);
+  color: var(--foreground);
+}
+
+.city-scene-photo {
+  position: relative;
+  height: 245px;
+  overflow: hidden;
+  border-bottom: 2px solid var(--foreground);
+}
+
+.city-scene img {
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.city-scene:hover img {
+  transform: scale(1.04);
+}
+
+.city-scene-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 60%, #11111187);
+  pointer-events: none;
+}
+
+.city-location {
+  position: absolute;
+  z-index: 1;
+  bottom: 14px;
+  left: 15px;
+  background: #202021d9;
+  color: #fff8e8;
+  font:
+    23px/1.2 "Permanent Marker",
+    "Anton",
+    sans-serif;
+  padding: 6px 10px;
+  transform: rotate(-3deg);
+}
+
+.scene-tape {
+  position: absolute;
+  top: 11px;
+  left: 40%;
+  width: 75px;
+  height: 21px;
+  background: #d7ff39cd;
+  transform: rotate(-12deg);
+  border-left: 2px dashed #53621360;
+  border-right: 2px dashed #53621360;
+}
+
+.scene-la .scene-tape {
+  background: #ff6838cc;
+  transform: rotate(11deg);
+}
+
+.scene-atl .scene-tape {
+  background: #f5a1e4cd;
+}
+
+.city-scene-caption {
+  padding: 20px;
+}
+
+.city-scene-caption > span {
+  font:
+    700 9px/1.5 "Space Mono",
+    "Courier New",
+    monospace;
+  color: var(--street-blue);
+  letter-spacing: 1px;
+}
+
+.city-scene-caption h3 {
+  font:
+    400 28px/1.15 "Anton",
+    Impact,
+    sans-serif;
+  margin: 12px 0 10px;
+}
+
+.city-scene-caption p {
+  color: #625b4d;
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.scene-source-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: baseline;
+  margin-top: 25px;
+  font:
+    9px/1.7 "Space Mono",
+    "Courier New",
+    monospace;
+  color: var(--muted);
+}
+
+.scene-source-note p {
+  margin: 0;
+}
+
+.scene-source-note a {
+  flex-shrink: 0;
+  color: var(--street-blue);
+  font-weight: 700;
+}
+
+.scene-source-note a:hover {
+  text-decoration: underline;
+}
+
+.daily-drop {
+  border-top: 2px solid var(--foreground);
+  border-bottom: 2px solid var(--foreground);
+  padding: 21px 0;
+}
+
+.daily-drop > a,
+.daily-drop > a span {
+  color: var(--street-blue);
+}
+
+.section-heading h2 {
+  font-style: italic;
+  font-size: clamp(42px, 4.3vw, 64px);
+}
+
+.filter-tabs button {
+  color: #353126;
+  border-color: #807a6a;
+  background: #f7f2e7;
+  font-family: "Space Mono", "Courier New", monospace;
+  font-weight: 700;
+}
+
+.filter-tabs button[aria-pressed="true"] {
+  background: var(--street-blue);
+  border-color: var(--street-blue);
+  color: white;
+  box-shadow: 2px 2px 0 #1b1b1b;
+}
+
+.filter-tabs button:hover {
+  border-color: #20201d;
+}
+
+.search-box {
+  background: #f8f3e8;
+  border: 1px solid #807a6a;
+}
+
+.search-box input::placeholder {
+  color: #706a5c;
+}
+
+.artist-card {
+  background: var(--street-paper);
+  border: 1.5px solid var(--foreground);
+  box-shadow: 5px 5px 0 #23221f;
+}
+
+.record-art {
+  height: 236px;
+  border-bottom: 2px solid var(--foreground);
+  background-image: none;
+}
+
+.artist-street-photo {
+  object-fit: cover;
+  filter: saturate(0.75) contrast(1.08);
+}
+
+.record-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0005, transparent 40%, #0006);
+  pointer-events: none;
+}
+
+.record-code,
+.record-genre {
+  color: #fffaf0;
+  background: #19191ad9;
+  border: 1px solid #fffaf05c;
+  padding: 6px 8px;
+  z-index: 2;
+}
+
+.record-code {
+  display: inline-block;
+}
+
+.record-genre {
+  background: var(--record-color);
+  color: #1f211a;
+  border: 1px solid #1f211a;
+  transform: rotate(-3deg);
+}
+
+.mini-vinyl,
+.art-guy .mini-vinyl,
+.art-orbital .mini-vinyl {
+  z-index: 2;
+  width: 122px;
+  height: 122px;
+  right: 15px;
+  left: auto;
+  top: auto;
+  bottom: 18px;
+  box-shadow: 5px 6px 0 #10101175;
+  border: 1px solid #767970;
+}
+
+.mini-vinyl span {
+  width: 54px;
+  height: 54px;
+  border-width: 4px;
+  font-size: 22px;
+}
+
+.artist-info {
+  padding: 22px 21px 0;
+}
+
+.artist-meta {
+  color: #686154;
+  line-height: 1.6;
+}
+
+.artist-info h3 {
+  font:
+    400 29px/1.1 "Anton",
+    Impact,
+    sans-serif;
+  letter-spacing: 0;
+}
+
+.artist-info > p {
+  color: #595448;
+  font-size: 13px;
+}
+
+.artist-info summary {
+  border-top: 1px dashed #a79e8a;
+}
+
+.artist-info summary > span,
+.track-list a:hover,
+.track-list a > span {
+  color: var(--street-blue);
+}
+
+.track-list li {
+  border-top: 1px solid #d5cbb9;
+}
+
+.track-list li > span {
+  color: #6f6756;
+}
+
+.studio {
+  color: #f7f2e8;
+  background-color: #222229;
+  background-image:
+    radial-gradient(ellipse at 0 100%, #2649dc40, transparent 60%),
+    repeating-linear-gradient(0deg, transparent 0 59px, #b9afa112 60px 62px);
+  border-top: 2px solid #171717;
+  border-bottom: 2px solid #171717;
+}
+
+.studio-intro .eyebrow,
+.studio-intro h2 {
+  color: var(--lime);
+}
+
+.studio-intro h2 {
+  font-style: italic;
+}
+
+.studio-intro > p:not(.eyebrow) {
+  color: #d8d1c3;
+}
+
+.studio-intro .studio-fine {
+  color: #b9b4a8 !important;
+}
+
+.cassette {
+  background: #e4ded1;
+  box-shadow: 7px 9px 0 #0d0d0f;
+}
+
+.cassette-label {
+  background: var(--street-orange);
+}
+
+.studio-form {
+  background: #17171c;
+  border: 1.5px solid #b8b1a4;
+  box-shadow: 7px 7px 0 #0a0a0e;
+}
+
+.form-heading {
+  border-color: #59535a;
+  color: #efe9df;
+}
+
+.studio-form select,
+.studio-form textarea {
+  background: #2b2b32;
+  border-color: #716c75;
+  color: #f7f2e8;
+}
+
+.studio-form label {
+  color: #f1eadd;
+}
+
+.studio-form label span,
+.input-hint,
+.form-footnote {
+  color: #bcb5c1;
+}
+
+.note-card {
+  background: var(--street-paper);
+  border: 1.5px solid #23221f;
+  border-top: 7px solid var(--street-blue);
+  box-shadow: 5px 5px 0 #23221f;
+}
+
+.note-card:nth-child(3n + 2) {
+  border-top-color: var(--street-orange);
+}
+
+.note-card:nth-child(3n) {
+  border-top-color: #bd2899;
+}
+
+.note-meta {
+  color: var(--street-blue);
+}
+
+.note-card h3 {
+  font:
+    400 30px/1.12 "Anton",
+    Impact,
+    sans-serif;
+}
+
+.note-caption {
+  color: #514d44;
+}
+
+.note-tags span {
+  color: #514d44;
+  border-color: #aaa18e;
+  background: #ece4d3;
+}
+
+.prompt-details pre {
+  color: #514d44;
+  background: #e9e2d2;
+  border: 1px solid #c8c0ad;
+}
+
+.vote-bar {
+  border-color: #bcb19b;
+}
+
+.vote-controls button {
+  border-color: #777060;
+}
+
+.vote-controls button[aria-pressed="true"] {
+  border-color: #24211b;
+}
+
+.vote-bar > span,
+.vote-message {
+  color: #5e5849;
+}
+
+.empty-wall {
+  border: 1.5px dashed #8c826c;
+  background: #f8f3e875;
+}
+
+.empty-wall > span {
+  color: var(--street-blue);
+}
+
+.closing {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #fff8e8;
+  background: #19141c;
+  border-top: 2px solid #191717;
+  border-bottom: 2px solid #191717;
+}
+
+.closing-photo-background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.closing-photo-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#19141cea, #19141cf0);
+}
+
+.closing .eyebrow {
+  color: var(--lime);
+}
+
+.closing h2 {
+  font-style: italic;
+}
+
+.site-footer {
+  padding-top: 40px;
+}
+
+.site-footer small {
+  color: #6c6455;
+  line-height: 1.7;
+}
+
+.account-page {
+  background: var(--street-paper);
+  border: 1.5px solid var(--foreground);
+  box-shadow: 7px 7px 0 var(--foreground);
+}
+
+.account-page h1 {
+  font-style: italic;
+}
+
+.account-page p {
+  color: #5c5548;
+}
+
+.account-page input {
+  background: #fffaf0;
+  border-color: #8b826d;
+  color: var(--foreground);
+}
+
+.account-page a:not(.button),
+.account-page .account-kicker {
+  color: var(--street-blue);
+}
+
+.account-page button {
+  border: 1.5px solid #23221f;
+  box-shadow: 3px 3px 0 #23221f;
+}
+
+@media (min-width: 1600px) {
+  .hero {
+    padding-left: calc((100vw - 1440px) / 2 + 72px);
+    padding-right: calc((100vw - 1440px) / 2 + 72px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .hero {
+    min-height: 620px;
+    gap: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(56px, 5.9vw, 77px);
+  }
+  .hero-art {
+    min-height: 450px;
+  }
+  .street-photo-card.city-la {
+    top: 180px;
+  }
+  .street-photo-card.city-atl {
+    top: 278px;
+  }
+  .poster-stamp {
+    bottom: 62px;
+  }
+  .city-scene-photo {
+    height: 230px;
+  }
+  .city-scene-caption h3 {
+    font-size: 25px;
+  }
+  .artist-info > p {
+    min-height: 115px;
+  }
+}
+
+@media (max-width: 800px) {
+  .site-header {
+    height: 82px;
+    min-height: 82px;
+  }
+  .site-header nav {
+    gap: 17px;
+    font-size: 10px;
+  }
+  .hero {
+    padding-top: 52px;
+    padding-bottom: 48px;
+    min-height: 570px;
+    gap: 15px;
+    grid-template-columns: 1.15fr 1fr;
+  }
+  .hero h1 {
+    font-size: clamp(34px, 5.9vw, 52px);
+  }
+  .hero .eyebrow {
+    font-size: 7px;
+  }
+  .hero-description {
+    font-size: 13px;
+  }
+  .hero-art {
+    min-height: 400px;
+  }
+  .street-poster {
+    min-height: 400px;
+  }
+  .street-photo-card.city-la {
+    top: 153px;
+  }
+  .street-photo-card.city-atl {
+    top: 232px;
+  }
+  .photo-city-tag {
+    font-size: 8px;
+  }
+  .poster-stamp {
+    padding: 9px;
+    font-size: 8px;
+    right: 0;
+    bottom: 64px;
+  }
+  .scene-manifesto {
+    padding-top: 48px;
+  }
+  .city-scenes {
+    gap: 13px;
+  }
+  .city-scene-photo {
+    height: 180px;
+  }
+  .city-scene-caption {
+    padding: 16px 12px;
+  }
+  .city-scene-caption h3 {
+    font-size: 23px;
+  }
+  .city-location {
+    font-size: 16px;
+    left: 10px;
+  }
+  .scene-source-note {
+    font-size: 8px;
+  }
+  .artist-info > p {
+    min-height: 96px;
+  }
+}
+
+@media (max-width: 540px) {
+  .site-header {
+    height: 88px;
+    min-height: 88px;
+    gap: 12px;
+  }
+  .site-header .wordmark {
+    font-size: 31px;
+  }
+  .site-header nav {
+    font-size: 9px;
+  }
+  .header-account {
+    padding: 7px 9px;
+    border: 1px solid #23221f;
+    font-size: 9px;
+    gap: 7px;
+  }
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 38px 6% 42px;
+    gap: 16px;
+  }
+  .hero-photo-background::after {
+    background: linear-gradient(#151419ec, #151419c9 50%, #15141977);
+  }
+  .hero h1 {
+    font-size: clamp(46px, 14.5vw, 75px);
+    line-height: 1.02;
+    letter-spacing: -1.5px;
+    margin: 23px 0 26px;
+  }
+  .hero .eyebrow {
+    font-size: 7px;
+    letter-spacing: 0.6px;
+  }
+  .hero-description {
+    font-size: 14px;
+  }
+  .hero-actions .button {
+    padding: 13px;
+    font-size: 9px;
+  }
+  .hero-stats {
+    gap: 26px;
+    font-size: 7px;
+    margin-top: 28px;
+  }
+  .hero-art {
+    min-height: 420px;
+    max-width: 390px;
+    margin-top: 30px;
+  }
+  .street-photo-card.city-la {
+    top: 164px;
+    right: 1%;
+  }
+  .street-photo-card.city-atl {
+    top: 265px;
+    width: 48%;
+  }
+  .street-poster {
+    min-height: 440px;
+  }
+  .photo-city-tag {
+    font-size: 9px;
+  }
+  .poster-stamp {
+    bottom: 55px;
+    right: 3%;
+    font-size: 9px;
+  }
+  .genre-strip {
+    font-size: 9px;
+    padding: 15px 20px;
+  }
+  .scene-manifesto {
+    padding: 44px 6% 35px;
+  }
+  .scene-manifesto h2,
+  .section-heading h2 {
+    font-size: 42px;
+  }
+  .city-scenes {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    margin-top: 26px;
+  }
+  .city-scene-photo {
+    height: 220px;
+  }
+  .scene-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .city-scene-caption {
+    padding: 20px;
+  }
+  .city-location {
+    font-size: 23px;
+    left: 15px;
+  }
+  .city-scene-caption h3 {
+    font-size: 29px;
+  }
+  .scene-source-note {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .record-art {
+    height: 230px;
+  }
+  .artist-info h3 {
+    font-size: 32px;
+  }
+  .artist-info > p {
+    min-height: 0;
+  }
+  .filter-tabs button {
+    font-size: 9px;
+  }
+  .studio-intro h2 {
+    font-size: 58px;
+  }
+  .closing {
+    padding: 54px 6%;
+  }
+  .closing h2 {
+    font-size: 44px;
+  }
+  .account-page {
+    box-shadow: 5px 5px 0 #23221f;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .city-scene:hover img {
+    transform: none;
+  }
+}

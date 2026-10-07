@@ -1,6 +1,8 @@
 # SIDE B
 
-A 90s music discovery club for students exploring New York. The collection combines hip hop, new jack swing, and rave; the AI studio turns an artist, mood, and city scene into an original short mixtape liner note. Signed-in listeners can create notes and cast one upvote or downvote per note.
+A 90s music discovery club with a graffiti-and-alleyway visual identity inspired by NYC, Los Angeles, and Atlanta street culture. The collection combines hip hop, new jack swing, and rave; the AI studio turns an artist, mood, and city scene into an original short mixtape liner note. Signed-in listeners can create notes and cast one upvote or downvote per note.
+
+The street edition uses original photographic-style scene artwork, overlapping photo prints, wheatpasted flyer cards, textured paper, and hand-lettered headings. Its visual references include H.O.T., TLC, EYC, Bobby Brown, and L.A. Boyz music-video styling. Images are clearly identified as generated fictional scenes, not artist portraits or archival video stills; provenance is recorded in `public/images/README.md`.
 
 ## Product decisions
 
@@ -20,7 +22,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Without Supabase settings the catalog still runs, while account and community features display honest unavailable states. No fake generations or vote counts are seeded. Display fonts (Anton and Space Mono) are bundled from Fontsource; runtime Google Fonts access is unnecessary.
+Without Supabase settings the catalog still runs, while account and community features display honest unavailable states. No fake generations or vote counts are seeded. Display fonts (Anton, Permanent Marker, and Space Mono) are bundled from Fontsource; runtime Google Fonts access is unnecessary. Street-scene images are bundled locally and served through Next.js image optimization.
 
 ## Supabase setup
 

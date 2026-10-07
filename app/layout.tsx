@@ -2,13 +2,15 @@ import ArrowIcon from "@/app/components/arrow-icon";
 import type { Metadata } from "next";
 import Link from "next/link";
 import "@fontsource/anton/latin-400.css";
+import "@fontsource/permanent-marker/latin-400.css";
 import "@fontsource/space-mono/latin-400.css";
 import "@fontsource/space-mono/latin-700.css";
 import "./globals.css";
+import "./street-theme.css";
 export const metadata: Metadata = {
-  title: "SIDE B — Old school. New energy.",
+  title: "SIDE B — Off the wall. On repeat.",
   description:
-    "A 90s-inspired music discovery club. Explore hip hop, new jack swing, and rave essentials; create AI mixtape notes and vote on your favorites.",
+    "A graffiti-soaked 90s music discovery club inspired by NYC, LA, and Atlanta street culture. Explore hip hop, new jack swing, and rave essentials; create AI mixtape notes and vote on your favorites.",
 };
 export default function RootLayout({
   children,
@@ -44,7 +46,7 @@ export default function RootLayout({
             SIDE<span>B</span>
             <i>®</i>
           </Link>
-          <p>ROOTED IN THE 90s. TUNED INTO TODAY.</p>
+          <p>NYC / LA / ATL — KEEP THE CULTURE MOVING.</p>
           <div>
             <Link href="/login">Sign in</Link>
             <Link href="/profile">Profile</Link>

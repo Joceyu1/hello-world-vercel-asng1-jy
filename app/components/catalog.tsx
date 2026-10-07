@@ -1,5 +1,6 @@
 "use client";
 import ArrowIcon from "@/app/components/arrow-icon";
+import Image from "next/image";
 import { useState, type CSSProperties } from "react";
 import { artists, spotifySearch } from "@/lib/music/artists";
 export default function Catalog() {
@@ -17,7 +18,11 @@ export default function Catalog() {
       <div className="section-heading">
         <div>
           <p className="eyebrow">01 / THE RECORD COLLECTION</p>
-          <h2>Know your roots.</h2>
+          <h2>
+            Crate-digging.
+            <br />
+            <span className="street-accent">No gatekeeping.</span>
+          </h2>
         </div>
         <p>
           Ten artists. A hundred essentials.
@@ -60,6 +65,14 @@ export default function Catalog() {
             style={{ "--record-color": artist.color } as CSSProperties}
           >
             <div className={`record-art art-${artist.id}`} aria-hidden="true">
+              <Image
+                src={`/images/side-b-${artist.genre === "Rave" ? "la" : artist.genre === "New jack swing" ? "atl" : "nyc"}.png`}
+                alt=""
+                fill
+                sizes="(max-width: 540px) 88vw, (max-width: 800px) 43vw, 29vw"
+                className="artist-street-photo"
+                style={{ objectFit: "cover" }}
+              />
               <span className="record-code">
                 SIDE B / {String(artists.indexOf(artist) + 1).padStart(2, "0")}
               </span>
