@@ -75,7 +75,7 @@ async function expectProviderFailure(
       "Provider failures should produce a sanitized diagnostic",
     );
     assert.equal(diagnostic.httpStatus, response.status);
-    assert.equal(diagnostic.model, "gemini-2.5-flash");
+    assert.equal(diagnostic.model, "gemini-flash-latest");
     assert.ok(
       Object.keys(diagnostic).every((key) =>
         ["httpStatus", "model", "providerStatus", "reason"].includes(key),
@@ -87,12 +87,29 @@ async function expectProviderFailure(
 test("Gemini request uses a private header and preserves the actual prompt and model", async (t) => {
   await withKey(async () => {
     t.mock.method(globalThis, "fetch", async (url, options) => {
+      assert.equal(
+        new URL(url).pathname,
+        "/v1beta/models/gemini-flash-latest:generateContent",
+      );
       assert.equal(new URL(url).searchParams.has("key"), false);
       assert.equal(options.headers["x-goog-api-key"], "test-only-key");
       const body = JSON.parse(options.body);
       assert.equal(body.contents[0].parts[0].text, "A full test prompt");
-      assert.equal(body.generationConfig.thinkingConfig.thinkingBudget, 0);
       assert.equal(body.generationConfig.responseMimeType, "application/json");
+      assert.equal(body.generationConfig.maxOutputTokens, 2048);
+      assert.deepEqual(body.generationConfig.responseSchema, {
+        type: "OBJECT",
+        properties: {
+          title: { type: "STRING" },
+          caption: { type: "STRING" },
+        },
+        required: ["title", "caption"],
+      });
+      assert.equal(Object.hasOwn(body.generationConfig, "temperature"), false);
+      assert.equal(
+        Object.hasOwn(body.generationConfig, "thinkingConfig"),
+        false,
+      );
       return Response.json({
         candidates: [
           {
@@ -108,8 +125,38 @@ test("Gemini request uses a private header and preserves the actual prompt and m
     assert.deepEqual(await generateNote("A full test prompt"), {
       title: "City rhythm",
       caption: "A new B-side.",
-      model: "gemini-2.5-flash",
+      model: "gemini-flash-latest",
     });
+  });
+});
+test("an explicit Gemini 2.5 Flash override retains its supported sampling and thinking controls", async (t) => {
+  await withKey(async () => {
+    process.env.GEMINI_MODEL = "gemini-2.5-flash";
+    t.mock.method(globalThis, "fetch", async (url, options) => {
+      assert.equal(
+        new URL(url).pathname,
+        "/v1beta/models/gemini-2.5-flash:generateContent",
+      );
+      const body = JSON.parse(options.body);
+      assert.equal(body.generationConfig.responseMimeType, "application/json");
+      assert.equal(body.generationConfig.thinkingConfig.thinkingBudget, 0);
+      assert.equal(body.generationConfig.temperature, 0.85);
+      return Response.json({
+        candidates: [
+          {
+            content: {
+              parts: [
+                { text: '{"title":"City rhythm","caption":"A new B-side."}' },
+              ],
+            },
+          },
+        ],
+      });
+    });
+    assert.equal(
+      (await generateNote("A full test prompt")).model,
+      "gemini-2.5-flash",
+    );
   });
 });
 test("private credentials and a configured model are trimmed before a request", async (t) => {

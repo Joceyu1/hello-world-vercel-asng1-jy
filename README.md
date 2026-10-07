@@ -43,9 +43,11 @@ The selected project is `https://qrgjqpdvvbwmjpthpmlo.supabase.co`. The existing
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public Supabase publishable key (legacy anon key also works)                    |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Server-only Supabase service role/secret key for AI reservation and publication |
 | `GEMINI_API_KEY`                       | Server-only Gemini API key from Google AI Studio                                |
-| `GEMINI_MODEL`                         | Optional supported Gemini model; defaults to `gemini-2.5-flash`                 |
+| `GEMINI_MODEL`                         | Optional supported Gemini model; defaults to `gemini-flash-latest`              |
 
 Keep service role and Gemini keys server-only; never add a `NEXT_PUBLIC_` prefix. Set public variables before building, because Next.js embeds them in the browser bundle. No Spotify credential is needed for the curated search links. Restricted environments need `qrgjqpdvvbwmjpthpmlo.supabase.co` and `generativelanguage.googleapis.com` allowed; npm installation needs `registry.npmjs.org`.
+
+The default model follows `gemini-flash-latest`, as used in [Google's current SDK quickstart](https://github.com/googleapis/js-genai#quickstart). No `GEMINI_MODEL` variable is required in Vercel. The alias uses the model's default sampling and thinking settings; explicit Gemini 2.5 Flash overrides retain their legacy controls. Structured JSON output is still validated before publication.
 
 ### Data and security
 
@@ -81,7 +83,7 @@ After applying the live migration and credentials, complete these required check
 5. Verify six generation attempts exhaust the five-attempt daily budget and failed reservations never appear publicly.
 6. Audit unknown tables/policies and any pre-existing public views or security-definer functions. The SQL cannot infer policies for undiscovered features.
 
-Live OAuth, Gemini generation, and remote RLS validation remain unrun until credentials and the migration are supplied.
+Successful live generation, persisted voting, and two-account RLS checks still require verification against the deployed app; local checks do not establish those outcomes.
 
 If Gemini rejects a generation request, the studio now shows a plain explanation and a safe `AI-<HTTP status>-<provider code>` reference. The matching Vercel runtime log starts with `[SIDE B] Gemini request rejected` and contains only the HTTP status, model, and recognized status/reason codes. Raw provider messages, metadata, prompts, and credentials are excluded from both the message and log. Authentication, model availability, account setup, quota, and service failures have different explanations. Whitespace around the Gemini key or model is trimmed; no credentials are sent in URL query strings.
 

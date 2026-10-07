@@ -103,7 +103,7 @@ export async function generateNote(prompt: string) {
     throw new Error(
       "The AI studio is not connected yet. Please try again later.",
     );
-  const model = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
+  const model = process.env.GEMINI_MODEL?.trim() || "gemini-flash-latest";
   if (!/^gemini-[a-z0-9.-]+$/.test(model))
     throw new Error("The AI studio configuration needs attention.");
   const response = await fetch(
@@ -116,10 +116,11 @@ export async function generateNote(prompt: string) {
         generationConfig: {
           responseMimeType: "application/json",
           maxOutputTokens: 2048,
+          // The current Flash alias uses the model's defaults. Only explicit
+          // 2.5 overrides receive these legacy sampling and thinking controls.
           ...(model.startsWith("gemini-2.5-flash")
-            ? { thinkingConfig: { thinkingBudget: 0 } }
+            ? { thinkingConfig: { thinkingBudget: 0 }, temperature: 0.85 }
             : {}),
-          temperature: 0.85,
           responseSchema: {
             type: "OBJECT",
             properties: {
