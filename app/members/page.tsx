@@ -16,9 +16,8 @@ export default async function MembersPage() {
     error: authError,
   } = await supabase.auth.getUser();
 
-  if (authError || !isColumbiaGoogleUser(user)) {
-    redirect("/login");
-  }
+  if (authError || !user) redirect("/login");
+  if (!isColumbiaGoogleUser(user)) redirect("/access-denied");
 
   // Read this user's profile.
   const { data: profile, error: profileError } = await supabase

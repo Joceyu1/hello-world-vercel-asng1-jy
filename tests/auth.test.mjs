@@ -62,14 +62,13 @@ function callbackHarness(user, options = {}) {
   });
   return { GET, calls };
 }
-test("OAuth callback denies and signs out non-Columbia, unverified and forged identities", async () => {
+test("OAuth callback signs out rejected identities and redirects to Access Denied", async () => {
   for (const user of denied) {
     const h = callbackHarness(user);
     const response = await h.GET(new Request("https://side-b.test/auth/callback?code=valid"));
-    assert.equal(response.status, 403);
-    assert.equal(response.headers.get("Location"), null);
+    assert.equal(response.status, 307);
+    assert.equal(response.headers.get("Location"), "https://side-b.test/access-denied");
     assert.match(response.headers.get("Cache-Control"), /no-store/);
-    assert.match(await response.text(), /verified @columbia.edu Google account/);
     assert.deepEqual(h.calls, [["exchange", "valid"], ["getUser"], ["signOut", { scope: "local" }]]);
   }
 });
@@ -81,7 +80,9 @@ test("OAuth callback accepts verified Columbia Google users and fails closed on 
   assert.match(response.headers.get("Cache-Control"), /no-store/);
   assert.deepEqual(h.calls, [["exchange", "valid"], ["getUser"]]);
   const failed = callbackHarness(allowed, { authError: new Error("Expired") });
-  assert.equal((await failed.GET(new Request("https://side-b.test/auth/callback?code=valid"))).status, 403);
+  const failedResponse = await failed.GET(new Request("https://side-b.test/auth/callback?code=valid"));
+  assert.equal(failedResponse.status, 307);
+  assert.equal(failedResponse.headers.get("Location"), "https://side-b.test/access-denied");
   const badCode = callbackHarness(allowed, { exchangeError: new Error("Invalid code") });
   assert.equal((await badCode.GET(new Request("https://side-b.test/auth/callback?code=bad"))).status, 400);
   assert.deepEqual(badCode.calls, [["exchange", "bad"]]);
@@ -114,7 +115,7 @@ for (const page of ["profile", "members"]) {
         assert.ok(await Page());
         assert.equal(reads, 1);
       } else {
-        await assert.rejects(() => Page(), /redirect:\/login/);
+        await assert.rejects(() => Page(), user ? /redirect:\/access-denied/ : /redirect:\/login/);
         assert.equal(reads, 0);
       }
     }
