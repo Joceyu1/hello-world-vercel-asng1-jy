@@ -16,7 +16,11 @@ export default function LoginPage() {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          // Google treats hd as a chooser hint, not an access control.
+          queryParams: { hd: "columbia.edu", prompt: "select_account" },
+        },
       });
       if (error) throw error;
     } catch {
@@ -33,7 +37,7 @@ export default function LoginPage() {
         Better together.
       </h1>
       <p>
-        Sign in to publish AI mixtape notes, vote on the community’s B-sides,
+        Sign in with your verified @columbia.edu Google account to publish AI mixtape notes, vote on the community’s B-sides,
         and make this corner of the city yours.
       </p>
       <button type="button" onClick={signIn} disabled={busy || !configured}>

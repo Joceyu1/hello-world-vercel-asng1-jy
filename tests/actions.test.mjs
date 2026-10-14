@@ -35,6 +35,12 @@ const artistsModule = load(compile("../lib/music/artists.ts"), {});
 const promptModule = load(compile("../lib/music/prompt.ts"), {
   "./artists": artistsModule,
 });
+const columbiaModule = load(compile("../lib/auth/columbia.ts"), {});
+const eligible = (id) => ({
+  id, email: "listener@columbia.edu", email_confirmed_at: "2026-10-14T00:00:00Z",
+  app_metadata: { provider: "google" },
+  identities: [{ provider: "google", identity_data: { email: "listener@columbia.edu", email_verified: true } }],
+});
 const actionSource = compile("../app/actions/studio.ts");
 const owner = "11111111-1111-4111-8111-111111111111";
 const other = "22222222-2222-4222-8222-222222222222";
@@ -62,7 +68,7 @@ function harness(options = {}) {
           data: {
             user: Object.hasOwn(options, "user")
               ? options.user
-              : { id: owner },
+              : eligible(owner),
           },
           error: options.authError ?? null,
         };
@@ -139,6 +145,7 @@ function harness(options = {}) {
   const actions = load(
     actionSource,
     {
+      "@/lib/auth/columbia": columbiaModule,
       "next/cache": {
         revalidatePath(path) {
           calls.push({ operation: "revalidate", path });
@@ -336,7 +343,7 @@ test("publication failure keeps generated output off the wall", async () => {
 
 test("valid votes bind the server-resolved owner and insert one ballot", async () => {
   for (const value of [-1, 1]) {
-    const app = harness({ user: { id: other } });
+    const app = harness({ user: eligible(other) });
     assert.equal((await app.submitVote(generationId, value, owner)).ok, true);
     assert.deepEqual(app.calls.find((call) => call.operation === "vote"), {
       operation: "vote",
@@ -363,5 +370,29 @@ test("duplicate ballots and database failures return failures without revalidati
     assert.match(result.message, message);
     assert.equal(app.operations().includes("revalidate"), false);
     assert.equal(app.operations().includes("adminClient"), false);
+  }
+});
+
+
+test("existing personal, unverified, and forged-metadata sessions cannot generate or vote", async () => {
+  for (const user of [
+    { ...eligible(owner), email: "listener@gmail.com" },
+    { ...eligible(owner), email: "listener@columbia.edu.evil.test" },
+    { ...eligible(owner), email_confirmed_at: null },
+    { ...eligible(owner), identities: [] },
+    { ...eligible(owner), app_metadata: { provider: "email" } },
+    { ...eligible(owner), identities: [{ provider: "google", identity_data: { email: "listener@columbia.edu", email_verified: false } }] },
+    { id: owner, email: "listener@columbia.edu", user_metadata: { provider: "google", email_verified: true } },
+  ]) {
+    for (const action of ["publishNote", "submitVote"]) {
+      const app = harness({ user });
+      const result = action === "publishNote"
+        ? await app.publishNote(input)
+        : await app.submitVote(generationId, 1);
+      assert.equal(result.ok, false);
+      assert.match(result.message, /verified @columbia.edu Google account/);
+      assert.deepEqual(app.operations(), ["userClient", "authenticate"]);
+      assert.equal(app.rows.size, 0);
+    }
   }
 });

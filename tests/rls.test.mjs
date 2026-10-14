@@ -13,7 +13,14 @@ async function createLegacyFixture(database, profileColumns) {
   await database.exec(`
     create role anon; create role authenticated; create role service_role bypassrls;
     create schema auth; create schema storage;
-    create table auth.users(id uuid primary key);
+    create table auth.users(
+      id uuid primary key, email text, email_confirmed_at timestamptz,
+      raw_app_meta_data jsonb, raw_user_meta_data jsonb
+    );
+    create table auth.identities(
+      id uuid primary key default gen_random_uuid(), user_id uuid references auth.users(id),
+      provider text, identity_data jsonb
+    );
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
     grant usage on schema auth, storage to anon, authenticated, service_role;
     create table public.profiles(id uuid primary key references auth.users(id), ${profileColumns});
@@ -25,7 +32,11 @@ async function createLegacyFixture(database, profileColumns) {
     alter table storage.objects enable row level security;
     grant select, insert, update, delete on storage.objects to anon, authenticated;
     create policy old_broad_policy on storage.objects for all to public using (true) with check (true);
-    insert into auth.users values('${alice}'),('${bob}');
+    insert into auth.users(id,email,email_confirmed_at,raw_app_meta_data)
+    values('${alice}','alice@columbia.edu',now(),'{"provider":"google"}'),
+          ('${bob}','bob@columbia.edu',now(),'{"provider":"google"}');
+    insert into auth.identities(user_id,provider,identity_data)
+    select id,'google', jsonb_build_object('email',email,'email_verified',true) from auth.users;
     insert into public.class_schedule values(1,'Existing schedule');
   `);
 }
@@ -118,7 +129,7 @@ test("canonical profile columns also support existing data and required-name pro
       ],
     );
     const newcomer = "44444444-4444-4444-8444-444444444444";
-    await canonical.query("insert into auth.users values($1)", [newcomer]);
+    await canonical.query("insert into auth.users(id,email,email_confirmed_at,raw_app_meta_data) values($1,'new@columbia.edu',now(),'{\"provider\":\"google\"}')", [newcomer]);
     assert.deepEqual(
       (await canonical.query("select first_name,last_name from public.profiles where id=$1", [newcomer])).rows,
       [{ first_name: "", last_name: "" }],
@@ -349,7 +360,8 @@ test("profiles are provisioned automatically and users can only read and edit th
     /permission denied/,
   );
   const newcomer = "33333333-3333-4333-8333-333333333333";
-  await db.query("insert into auth.users values($1)", [newcomer]);
+  await db.query("insert into auth.users(id,email,email_confirmed_at,raw_app_meta_data) values($1,'new@columbia.edu',now(),'{\"provider\":\"google\"}')", [newcomer]);
+  await db.query("insert into auth.identities(user_id,provider,identity_data) values($1,'google','{\"email\":\"new@columbia.edu\",\"email_verified\":true}')", [newcomer]);
   assert.equal(
     (await as("authenticated", newcomer, "select id from public.profiles")).rows
       .length,
@@ -525,4 +537,75 @@ test("database artist whitelist exactly matches all 30 catalog artists", async (
   } finally {
     await db.exec("rollback");
   }
+});
+
+test("existing personal sessions lose private access and mutations while browsing stays public", async () => {
+  // Bob already owns a profile and a ballot: changing eligibility must take
+  // effect without replacing the session/JWT or deleting historical content.
+  await db.query("update auth.users set email='bob@gmail.com', raw_user_meta_data=$1 where id=$2", [
+    { email: "bob@columbia.edu", email_verified: true, provider: "google" }, bob,
+  ]);
+  await db.exec("create policy legacy_permissive_votes on public.votes for all to authenticated using(true) with check(true)");
+  try {
+    assert.equal((await as("authenticated", bob, "select public.is_columbia_google_user() as allowed")).rows[0].allowed, false);
+    assert.equal((await as("authenticated", bob, "select * from public.votes")).rows.length, 0);
+    assert.equal((await as("authenticated", bob, "select * from public.profiles")).rows.length, 0);
+    assert.equal((await as("authenticated", bob, "update public.profiles set first_name='Bypass' where id=$1 returning id", [bob])).rows.length, 0);
+    await assert.rejects(() => as("authenticated", bob,
+      "insert into public.votes(generation_id,user_id,value) values($1,$2,1)", [publishedId, bob]), /row-level security/);
+    await assert.rejects(() => as("authenticated", bob,
+      "insert into storage.objects(bucket_id,name) values('avatars',$1)", [`${bob}/avatar`]), /row-level security/);
+    assert.equal((await as("authenticated", bob, "select * from storage.objects where bucket_id='avatars'")).rows.length, 0);
+    await assert.rejects(() => as("service_role", null,
+      "select public.reserve_generation($1,'tribe','mood','scene','prompt')", [bob]), /verified @columbia.edu Google account/);
+    assert.equal((await as("authenticated", bob, "select id from public.generations")).rows.length, 1);
+    const totals = await as("authenticated", bob, "select * from public.vote_totals($1::uuid[])", [[publishedId]]);
+    assert.equal(Number(totals.rows[0].upvotes) + Number(totals.rows[0].downvotes), 2);
+    assert.equal((await as("anon", null, "select id from public.generations")).rows.length, 1);
+    assert.equal((await as("anon", null, "select public.is_columbia_google_user() as allowed")).rows[0].allowed, false);
+    await assert.rejects(() => as("authenticated", bob,
+      "select side_b_private.is_columbia_google_user($1)", [alice]), /permission denied/);
+  } finally {
+    await db.exec("drop policy legacy_permissive_votes on public.votes");
+    await db.query("update auth.users set email='bob@columbia.edu', raw_user_meta_data=null where id=$1", [bob]);
+  }
+});
+
+test("RLS and service reservations require exact, confirmed, provider-verified Columbia identity", async () => {
+  const id = "55555555-5555-4555-8555-555555555555";
+  await db.query("insert into auth.users(id) values($1)", [id]);
+  const valid = { email: "verified@columbia.edu", confirmed: true, provider: "google", identityProvider: "google", identityEmail: "verified@columbia.edu", verified: true };
+  const invalid = [
+    { email: "verified@gmail.com", identityEmail: "verified@gmail.com" },
+    { email: "verified@alumni.columbia.edu", identityEmail: "verified@alumni.columbia.edu" },
+    { email: "verified@columbia.edu.evil.test", identityEmail: "verified@columbia.edu.evil.test" },
+    { email: "verified@evilcolumbia.edu", identityEmail: "verified@evilcolumbia.edu" },
+    { email: "a@b@columbia.edu", identityEmail: "a@b@columbia.edu" },
+    { email: "verified@columbia.edu ", identityEmail: "verified@columbia.edu " },
+    { confirmed: false }, { provider: "email" }, { identityProvider: "email" },
+    { verified: false }, { verified: "true" }, { verified: null },
+    { identityEmail: "other@columbia.edu" }, { identityEmail: null },
+  ];
+  for (const change of [...invalid, {}, { email: "VERIFIED@COLUMBIA.EDU" }]) {
+    const state = { ...valid, ...change };
+    await db.query("update auth.users set email=$1, email_confirmed_at=case when $2 then now() else null end, raw_app_meta_data=$3, raw_user_meta_data=$4 where id=$5", [
+      state.email, state.confirmed, { provider: state.provider },
+      { provider: "google", email: valid.email, email_verified: true }, id,
+    ]);
+    await db.query("delete from auth.identities where user_id=$1", [id]);
+    await db.query("insert into auth.identities(user_id,provider,identity_data) values($1,$2,$3)", [id, state.identityProvider, { email: state.identityEmail, email_verified: state.verified }]);
+    const expected = !invalid.includes(change);
+    assert.equal((await as("authenticated", id, "select public.is_columbia_google_user() as allowed")).rows[0].allowed, expected, JSON.stringify(change));
+    if (!expected) {
+      assert.equal((await as("authenticated", id, "select id from public.profiles")).rows.length, 0);
+      await assert.rejects(() => as("authenticated", id,
+        "insert into public.votes(generation_id,user_id,value) values($1,$2,1)", [publishedId, id]), /row-level security/);
+      await assert.rejects(() => as("service_role", null,
+        "select public.reserve_generation($1,'tribe','mood','scene','prompt')", [id]), /verified @columbia.edu Google account/);
+    } else {
+      assert.equal((await as("authenticated", id, "select id from public.profiles")).rows.length, 1);
+    }
+  }
+  await db.query("delete from auth.identities where user_id=$1", [id]);
+  assert.equal((await as("authenticated", id, "select public.is_columbia_google_user() as allowed")).rows[0].allowed, false);
 });

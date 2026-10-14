@@ -1,3 +1,4 @@
+import { isColumbiaGoogleUser } from "@/lib/auth/columbia";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 export type FeedNote = {
@@ -31,7 +32,9 @@ export async function getFeed(): Promise<{
     const supabase = await createClient();
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
+    const signedIn = !authError && isColumbiaGoogleUser(user);
     const { data, error } = await supabase
       .from("generations")
       .select("id,artist_id,mood,scene,prompt,title,caption,model,created_at")
@@ -41,17 +44,17 @@ export async function getFeed(): Promise<{
     if (error)
       return {
         notes: [],
-        signedIn: Boolean(user),
+        signedIn,
         issue:
           "The community wall is temporarily unavailable. Please check back soon.",
       };
     const ids = (data ?? []).map((n) => n.id);
-    if (!ids.length) return { notes: [], signedIn: Boolean(user), issue: null };
+    if (!ids.length) return { notes: [], signedIn, issue: null };
     const { data: totals, error: totalsError } = await supabase.rpc(
       "vote_totals",
       { generation_ids: ids },
     );
-    const ownVotes = user
+    const ownVotes = signedIn && user
       ? await supabase
           .from("votes")
           .select("generation_id,value")
@@ -61,7 +64,7 @@ export async function getFeed(): Promise<{
     if (totalsError || ownVotes.error)
       return {
         notes: [],
-        signedIn: Boolean(user),
+        signedIn,
         issue:
           "The voting wall is temporarily unavailable. Please check back soon.",
       };
@@ -82,7 +85,7 @@ export async function getFeed(): Promise<{
       (ownVotes.data ?? []).map((v) => [v.generation_id, v.value]),
     );
     return {
-      signedIn: Boolean(user),
+      signedIn,
       issue: null,
       notes: (data ?? []).map((n) => {
         const tally = scores.get(n.id);

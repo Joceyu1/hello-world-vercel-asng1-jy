@@ -1,4 +1,5 @@
 "use server";
+import { COLUMBIA_SIGN_IN_MESSAGE, isColumbiaGoogleUser } from "@/lib/auth/columbia";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -36,6 +37,8 @@ export async function publishNote(
     } = await supabase.auth.getUser();
     if (authError || !user)
       return { ok: false, message: "Sign in to create a mixtape note." };
+    if (!isColumbiaGoogleUser(user))
+      return { ok: false, message: COLUMBIA_SIGN_IN_MESSAGE };
     const prompt = buildPrompt(input);
     if (!process.env.GEMINI_API_KEY?.trim())
       return {
@@ -124,6 +127,8 @@ export async function submitVote(
     } = await supabase.auth.getUser();
     if (authError || !user)
       return { ok: false, message: "Sign in to cast your vote." };
+    if (!isColumbiaGoogleUser(user))
+      return { ok: false, message: COLUMBIA_SIGN_IN_MESSAGE };
     const { error } = await supabase
       .from("votes")
       .insert({ generation_id: generationId, user_id: user.id, value });
