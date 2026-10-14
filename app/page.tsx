@@ -28,7 +28,7 @@ export default async function Home() {
       <section className="hero">
         <div className="hero-photo-background" aria-hidden="true">
           <Image
-            src="/images/side-b-nyc.png"
+            src="/images/side-b-graffiti-wall.webp"
             alt=""
             fill
             sizes="100vw"
@@ -155,7 +155,7 @@ export default async function Home() {
       <section className="closing">
         <div className="closing-photo-background" aria-hidden="true">
           <Image
-            src="/images/side-b-atl.png"
+            src="/images/side-b-graffiti-wall.webp"
             alt=""
             fill
             sizes="100vw"

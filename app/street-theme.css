@@ -10,13 +10,15 @@
   --street-paper: #f8f3e8;
 }
 
+/* Original mural stays behind the page; opaque paper protects small text. */
 body {
+  background-color: #393734;
   background-image:
-    radial-gradient(#53482c12 0.65px, transparent 0.65px),
-    linear-gradient(105deg, #d8d0bd25, transparent 35%, #cbbf9f20);
-  background-size:
-    5px 5px,
-    100% 100%;
+    linear-gradient(#17181b24, #17181b24),
+    url("/images/side-b-graffiti-wall.webp");
+  background-position: center top;
+  background-size: auto, 1536px auto;
+  background-repeat: repeat, repeat-y;
 }
 
 :focus-visible {
@@ -91,14 +93,14 @@ body {
 
 .hero-photo-background img {
   object-position: center;
-  filter: saturate(0.75);
+  filter: saturate(1.1) contrast(1.08);
 }
 
 .hero-photo-background::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #141414ef 0%, #1a171bd1 44%, #14141968);
+  background: linear-gradient(90deg, #121219f2 0%, #15141bce 42%, #15141b38);
 }
 
 .hero::after {
@@ -1076,7 +1078,7 @@ body {
     gap: 16px;
   }
   .hero-photo-background::after {
-    background: linear-gradient(#151419ec, #151419c9 50%, #15141977);
+    background: linear-gradient(#151419e8, #151419c4 48%, #15141945);
   }
   .hero h1 {
     font-size: clamp(46px, 14.5vw, 75px);
@@ -1198,5 +1200,69 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .city-scene:hover img {
     transform: none;
+  }
+}
+
+
+/* Wheatpaste sheets over the painted wall, with no texture behind body copy. */
+.scene-manifesto,
+.section:not(.studio) {
+  width: calc(100% - clamp(28px, 7vw, 112px));
+  max-width: 1280px;
+  margin: 36px auto;
+  padding-left: clamp(18px, 3.5vw, 52px);
+  padding-right: clamp(18px, 3.5vw, 52px);
+  background: #f2ecdf;
+  border: 1px solid #c6bdab;
+  border-top: 5px solid #d7ff39;
+  box-shadow: 8px 10px 0 #11131885;
+}
+
+.daily-drop {
+  width: calc(100% - clamp(28px, 7vw, 112px));
+  max-width: 1280px;
+  padding: 22px clamp(18px, 3.5vw, 52px);
+  background: #f8f3e8;
+  box-shadow: 8px 8px 0 #11131885;
+}
+
+.studio {
+  max-width: none;
+  background-image:
+    linear-gradient(90deg, #15141bed, #15141bd9),
+    url("/images/side-b-graffiti-wall.webp");
+  background-size: cover;
+  background-position: center;
+}
+
+.closing-photo-background::after {
+  background: linear-gradient(#15141bbd, #15141bd9);
+}
+
+.site-footer {
+  max-width: none;
+  background: #eee7d8;
+  border-top: 5px solid var(--street-orange);
+}
+
+@media (max-width: 540px) {
+  body {
+    background-size: auto, 100% auto;
+  }
+
+  .hero-photo-background img {
+    object-position: 12% center;
+  }
+
+  .scene-manifesto,
+  .section:not(.studio) {
+    margin-top: 22px;
+    margin-bottom: 22px;
+    box-shadow: 4px 6px 0 #11131885;
+  }
+
+  .daily-drop {
+    gap: 16px;
+    box-shadow: 4px 6px 0 #11131885;
   }
 }
