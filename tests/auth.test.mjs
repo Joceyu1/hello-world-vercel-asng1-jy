@@ -3,15 +3,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 
-function load(path, dependencies = {}) {
+function load(path, dependencies = {}, globals = {}) {
   const source = ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   const compiledModule = { exports: {} };
-  new Function("require", "module", "exports", source)((name) => {
+  new Function("require", "module", "exports", ...Object.keys(globals), source)((name) => {
     assert.ok(Object.hasOwn(dependencies, name), `Unexpected dependency: ${name}`);
     return dependencies[name];
-  }, compiledModule, compiledModule.exports);
+  }, compiledModule, compiledModule.exports, ...Object.values(globals));
   return compiledModule.exports;
 }
 const access = load("../lib/auth/columbia.ts");
@@ -150,4 +150,35 @@ test("personal sessions browse published notes and public totals as guests witho
     assert.equal(feed.notes[0].ownVote, user === allowed ? 1 : null);
     assert.deepEqual(reads, user === allowed ? ["generations", "votes"] : ["generations"]);
   }
+});
+
+
+test("Google sign-in offers the account chooser without a Columbia domain hint", async () => {
+  let request;
+  const { default: LoginPage } = load("../app/login/page.tsx", {
+    "react/jsx-runtime": jsx,
+    react: { useState: (initial) => [initial, () => {}] },
+    "next/link": { default: "Link" },
+    "@/lib/supabase/client": { createClient: () => ({ auth: {
+      signInWithOAuth: async (options) => { request = options; return { error: null }; },
+    } }) },
+  }, {
+    window: { location: { origin: "https://side-b.test" } },
+    process: { env: { NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "test-public-key" } },
+  });
+  function findButton(node) {
+    if (!node || typeof node !== "object") return undefined;
+    if (node.type === "button") return node;
+    for (const child of [node.props?.children].flat()) {
+      const found = findButton(child);
+      if (found) return found;
+    }
+  }
+  const button = findButton(LoginPage());
+  assert.equal(button.props.disabled, false);
+  await button.props.onClick();
+  assert.deepEqual(request, {
+    provider: "google",
+    options: { redirectTo: "https://side-b.test/auth/callback", queryParams: { prompt: "select_account" } },
+  });
 });

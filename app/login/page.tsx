@@ -18,8 +18,8 @@ export default function LoginPage() {
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
-          // Google treats hd as a chooser hint, not an access control.
-          queryParams: { hd: "columbia.edu", prompt: "select_account" },
+          // Show all Google accounts; the callback enforces Columbia access.
+          queryParams: { prompt: "select_account" },
         },
       });
       if (error) throw error;
