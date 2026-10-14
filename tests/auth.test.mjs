@@ -126,10 +126,10 @@ test("personal sessions browse published notes and public totals as guests witho
   for (const user of [...denied, allowed]) {
     const reads = [];
     const published = { id: "note", title: "Public note" };
-    const { getFeed } = load("../lib/music/feed.ts", {
+    const { readFeed } = load("../lib/music/feed-data.ts", {
       "@/lib/auth/columbia": access,
-      "@/lib/supabase/config": { isSupabaseConfigured: () => true },
-      "@/lib/supabase/server": { createClient: async () => ({
+    });
+    const client = {
         auth: { getUser: async () => ({ data: { user }, error: null }) },
         rpc: async () => ({ data: [{ generation_id: "note", score: 1, upvotes: 1, downvotes: 0 }], error: null }),
         from: (table) => {
@@ -140,9 +140,8 @@ test("personal sessions browse published notes and public totals as guests witho
           };
           return query;
         },
-      }) },
-    });
-    const feed = await getFeed();
+    };
+    const feed = await readFeed(client);
     assert.equal(feed.signedIn, user === allowed);
     assert.equal(feed.issue, null);
     assert.equal(feed.notes[0].title, "Public note");
@@ -181,4 +180,29 @@ test("Google sign-in offers the account chooser without a Columbia domain hint",
     provider: "google",
     options: { redirectTo: "https://side-b.test/auth/callback", queryParams: { prompt: "select_account" } },
   });
+});
+
+test("browser feed uses the public browser client and handles missing configuration or network failure", async () => {
+  const client = {};
+  const expected = { notes: [{ id: "published-note" }], signedIn: false, issue: null };
+  for (const mode of ["connected", "disconnected", "failure"]) {
+    let created = 0;
+    const { getBrowserFeed } = load("../lib/music/browser-feed.ts", {
+      "@/lib/supabase/client": { createClient: () => { created++; return client; } },
+      "@/lib/supabase/config": { isSupabaseConfigured: () => mode !== "disconnected" },
+      "./feed-data": { readFeed: async (actual) => {
+        assert.equal(actual, client);
+        if (mode === "failure") throw new Error("Network unavailable");
+        return expected;
+      } },
+    });
+    const result = await getBrowserFeed();
+    if (mode === "connected") assert.deepEqual(result, expected);
+    else {
+      assert.equal(result.notes.length, 0);
+      assert.equal(result.signedIn, false);
+      assert.match(result.issue, mode === "disconnected" ? /getting connected/ : /temporarily unavailable/);
+    }
+    assert.equal(created, mode === "disconnected" ? 0 : 1);
+  }
 });

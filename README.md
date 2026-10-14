@@ -71,6 +71,12 @@ Apply the new migration in Supabase before treating the restriction as deployed.
 
 Prompt text is public after publication. The studio tells users not to include personal details. The service-role credential bypasses RLS by design; keep it scoped to the server module and never return it to a client.
 
+### Browser-visible Supabase integration
+
+The community wall renders its initial feed on the server, then refreshes published notes and vote totals directly through the Supabase browser client on mount and after a generation/voting Server Action refreshes the page. Open DevTools → Network → Fetch/XHR, then reload the home page. With the public Supabase variables configured, look for `/rest/v1/generations?select=...` and, when notes exist, `/rest/v1/rpc/vote_totals`. Eligible signed-in listeners also fetch only their own `/rest/v1/votes` rows. Responses contain the actual database results; no demo notes are inserted. Existing RLS and public-column grants enforce access, including for non-Columbia sessions.
+
+The browser uses only the public publishable key and the listener's session. AI requests, generation reservations/publication, and vote submission remain server actions; no Gemini or service-role key is exposed. This change needs no new database migration. Local browser transport checks use an isolated HTTP fixture, not the live database.
+
 ## Validation
 
 ```sh

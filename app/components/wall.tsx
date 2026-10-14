@@ -1,10 +1,11 @@
 "use client";
 import ArrowIcon from "@/app/components/arrow-icon";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { artists } from "@/lib/music/artists";
-import type { FeedNote } from "@/lib/music/feed";
+import type { FeedNote } from "@/lib/music/feed-data";
+import { getBrowserFeed } from "@/lib/music/browser-feed";
 import { submitVote } from "@/app/actions/studio";
 function NoteCard({ note, signedIn }: { note: FeedNote; signedIn: boolean }) {
   const [message, setMessage] = useState("");
@@ -95,15 +96,24 @@ function NoteCard({ note, signedIn }: { note: FeedNote; signedIn: boolean }) {
   );
 }
 export default function Wall({
-  notes,
-  signedIn,
-  issue,
+  notes: initialNotes,
+  signedIn: initialSignedIn,
+  issue: initialIssue,
 }: {
   notes: FeedNote[];
   signedIn: boolean;
   issue: string | null;
 }) {
   const [sort, setSort] = useState("Fresh drops");
+  const [feed, setFeed] = useState({ notes: initialNotes, signedIn: initialSignedIn, issue: initialIssue });
+  // Keep server-rendered content available immediately, then refresh through
+  // browser-visible Supabase REST/RPC calls on mount and after server actions.
+  useEffect(() => {
+    let active = true;
+    getBrowserFeed().then((result) => { if (active) setFeed(result); });
+    return () => { active = false; };
+  }, [initialNotes, initialSignedIn, initialIssue]);
+  const { notes, signedIn, issue } = feed;
   const sorted = [...notes].sort((a, b) =>
     sort === "Crowd favorites"
       ? b.score - a.score || b.created_at.localeCompare(a.created_at)
