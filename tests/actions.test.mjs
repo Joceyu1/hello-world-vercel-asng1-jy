@@ -82,6 +82,28 @@ function harness(options = {}) {
           if (options.voteThrows) throw options.voteThrows;
           return { error: options.voteError ?? null };
         },
+        update(values) {
+          const filters = [];
+          const query = {
+            eq(column, value) {
+              filters.push([column, value]);
+              return query;
+            },
+            select(columns) {
+              assert.equal(columns, "id");
+              return query;
+            },
+            async single() {
+              calls.push({ operation: "voteUpdate", values, filters });
+              if (options.voteUpdateThrows) throw options.voteUpdateThrows;
+              return {
+                data: options.voteUpdateMissing ? null : { id: "ballot-id" },
+                error: options.voteUpdateError ?? null,
+              };
+            },
+          };
+          return query;
+        },
       };
     },
   };
@@ -358,9 +380,39 @@ test("valid votes bind the server-resolved owner and insert one ballot", async (
   }
 });
 
-test("duplicate ballots and database failures return failures without revalidation", async () => {
+test("existing ballots change only the value for the server-resolved owner and note", async () => {
+  for (const value of [-1, 1]) {
+    const app = harness({ user: eligible(other), voteError: { code: "23505" } });
+    const result = await app.submitVote(generationId, value, owner);
+    assert.equal(result.ok, true);
+    assert.match(result.message, /Vote updated/);
+    assert.deepEqual(app.calls.find((call) => call.operation === "voteUpdate"), {
+      operation: "voteUpdate",
+      values: { value },
+      filters: [["generation_id", generationId], ["user_id", other]],
+    });
+    assert.deepEqual(app.operations(), ["userClient", "authenticate", "vote", "voteUpdate", "revalidate"]);
+    assert.equal(app.operations().includes("adminClient"), false);
+  }
+});
+
+test("a denied or missing existing ballot never reports success or revalidates", async () => {
+  for (const options of [
+    { voteUpdateError: { code: "42501" } },
+    { voteUpdateMissing: true },
+    { voteUpdateThrows: new Error("Connection lost") },
+  ]) {
+    const app = harness({ voteError: { code: "23505" }, ...options });
+    const result = await app.submitVote(generationId, -1);
+    assert.equal(result.ok, false);
+    assert.match(result.message, /could not be changed|temporarily unavailable/);
+    assert.equal(app.operations().includes("revalidate"), false);
+    assert.equal(app.operations().includes("adminClient"), false);
+  }
+});
+
+test("other database failures return failures without attempting an update or revalidation", async () => {
   for (const [options, message] of [
-    [{ voteError: { code: "23505" } }, /already voted/],
     [{ voteError: { code: "42501" } }, /could not be saved/],
     [{ voteThrows: new Error("Connection lost") }, /temporarily unavailable/],
   ]) {
@@ -369,6 +421,7 @@ test("duplicate ballots and database failures return failures without revalidati
     assert.equal(result.ok, false);
     assert.match(result.message, message);
     assert.equal(app.operations().includes("revalidate"), false);
+    assert.equal(app.operations().includes("voteUpdate"), false);
     assert.equal(app.operations().includes("adminClient"), false);
   }
 });

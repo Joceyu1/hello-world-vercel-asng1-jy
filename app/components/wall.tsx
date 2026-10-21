@@ -62,7 +62,7 @@ function NoteCard({ note, signedIn }: { note: FeedNote; signedIn: boolean }) {
             type="button"
             aria-label={`Upvote ${note.title}`}
             aria-pressed={recordedVote === 1}
-            disabled={!signedIn || pending || recordedVote !== null}
+            disabled={!signedIn || pending || recordedVote === 1}
             onClick={() => cast(1)}
           >
             ↑ <span>{note.upvotes}</span>
@@ -71,7 +71,7 @@ function NoteCard({ note, signedIn }: { note: FeedNote; signedIn: boolean }) {
             type="button"
             aria-label={`Downvote ${note.title}`}
             aria-pressed={recordedVote === -1}
-            disabled={!signedIn || pending || recordedVote !== null}
+            disabled={!signedIn || pending || recordedVote === -1}
             onClick={() => cast(-1)}
           >
             ↓ <span>{note.downvotes}</span>
@@ -129,7 +129,7 @@ export default function Wall({
         <p>
           Read a note. Give it an upvote or downvote.
           <br />
-          Sign in with Columbia Google to rate. One vote per note.
+          Sign in with Columbia Google to rate. One vote per note; change yours anytime.
         </p>
       </div>
       <div className="wall-controls">

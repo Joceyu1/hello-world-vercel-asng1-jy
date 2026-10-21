@@ -132,16 +132,29 @@ export async function submitVote(
     const { error } = await supabase
       .from("votes")
       .insert({ generation_id: generationId, user_id: user.id, value });
+    if (error?.code === "23505") {
+      const { data: updated, error: updateError } = await supabase
+        .from("votes")
+        .update({ value })
+        .eq("generation_id", generationId)
+        .eq("user_id", user.id)
+        .select("id")
+        .single();
+      if (updateError || !updated)
+        return {
+          ok: false,
+          message: "Your vote could not be changed. Please try again.",
+        };
+      revalidatePath("/");
+      return { ok: true, message: "Vote updated. You can change it again." };
+    }
     if (error)
       return {
         ok: false,
-        message:
-          error.code === "23505"
-            ? "You've already voted on this note."
-            : "Your vote could not be saved. Please try again.",
+        message: "Your vote could not be saved. Please try again.",
       };
     revalidatePath("/");
-    return { ok: true, message: "Vote saved. One listener, one vote." };
+    return { ok: true, message: "Vote saved. You can change it anytime." };
   } catch {
     return {
       ok: false,

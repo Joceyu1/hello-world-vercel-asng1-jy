@@ -271,10 +271,11 @@ test("valid ballots insert rows, duplicates fail, and voter identities stay priv
       .length,
     1,
   );
-  await assert.rejects(
-    () => as("authenticated", alice, "update public.votes set value=-1"),
-    /permission denied/,
+  assert.equal(
+    (await as("authenticated", alice, "update public.votes set value=-1 returning id")).rows.length,
+    1,
   );
+  await as("authenticated", alice, "update public.votes set value=1");
   await assert.rejects(
     () => as("authenticated", alice, "delete from public.votes"),
     /permission denied/,
@@ -289,6 +290,32 @@ test("valid ballots insert rows, duplicates fail, and voter identities stay priv
   assert.equal(Number(rows[0].upvotes), 1);
   assert.equal(Number(rows[0].downvotes), 1);
   assert.equal("user_id" in rows[0], false);
+});
+test("owners can flip a single existing ballot and totals reflect both directions", async () => {
+  const original = (await as("authenticated", alice, "select * from public.votes where generation_id=$1", [publishedId])).rows[0];
+  for (const value of [-1, 1, 1]) {
+    const changed = (await as("authenticated", alice,
+      "update public.votes set value=$1 where generation_id=$2 and user_id=$3 returning *", [value, publishedId, alice])).rows;
+    assert.equal(changed.length, 1);
+    assert.equal(changed[0].id, original.id);
+    assert.equal(changed[0].user_id, original.user_id);
+    assert.equal(changed[0].generation_id, original.generation_id);
+    assert.deepEqual(changed[0].created_at, original.created_at);
+    const totals = (await as("anon", null, "select * from public.vote_totals($1::uuid[])", [[publishedId]])).rows[0];
+    assert.equal(Number(totals.upvotes), value === 1 ? 1 : 0);
+    assert.equal(Number(totals.downvotes), value === 1 ? 1 : 2);
+    assert.equal(Number(totals.score), value === 1 ? 0 : -2);
+    assert.equal(Number((await db.query("select count(*) from public.votes")).rows[0].count), 2);
+  }
+});
+test("vote changes cannot alter another voter or immutable ballot columns", async () => {
+  assert.equal((await as("authenticated", alice,
+    "update public.votes set value=1 where user_id=$1 returning id", [bob])).rows.length, 0);
+  for (const assignment of ["user_id='11111111-1111-4111-8111-111111111111'", "generation_id=gen_random_uuid()", "id=gen_random_uuid()", "created_at=now()"])
+    await assert.rejects(() => as("authenticated", alice, `update public.votes set ${assignment}`), /permission denied/);
+  await assert.rejects(() => as("authenticated", alice, "update public.votes set value=0"), /check constraint/);
+  const other = (await as("authenticated", bob, "select value from public.votes where generation_id=$1", [publishedId])).rows;
+  assert.equal(other[0].value, -1);
 });
 test("daily quota stops the sixth reservation and pending notes are hidden and unvotable", async () => {
   let pendingId;
@@ -551,6 +578,7 @@ test("existing personal sessions lose private access and mutations while browsin
     assert.equal((await as("authenticated", bob, "select * from public.votes")).rows.length, 0);
     assert.equal((await as("authenticated", bob, "select * from public.profiles")).rows.length, 0);
     assert.equal((await as("authenticated", bob, "update public.profiles set first_name='Bypass' where id=$1 returning id", [bob])).rows.length, 0);
+    assert.equal((await as("authenticated", bob, "update public.votes set value=1 returning id")).rows.length, 0);
     await assert.rejects(() => as("authenticated", bob,
       "insert into public.votes(generation_id,user_id,value) values($1,$2,1)", [publishedId, bob]), /row-level security/);
     await assert.rejects(() => as("authenticated", bob,
