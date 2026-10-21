@@ -1,12 +1,12 @@
 "use client";
 import ArrowIcon from "@/app/components/arrow-icon";
 import ArtistPortrait from "@/app/components/artist-portrait";
+import TrackLinks from "./track-links";
+import GenreTabs, { useGenre } from "./genre-tabs";
 import { useState, type CSSProperties } from "react";
 import {
   artists,
-  genres,
-  trackSearch,
-  trackPlatformLabel,
+  artistDiscographyUrl,
 } from "@/lib/music/artists";
 
 const trackCount = artists.reduce(
@@ -15,7 +15,7 @@ const trackCount = artists.reduce(
 );
 
 export default function Catalog() {
-  const [genre, setGenre] = useState("All sounds");
+  const { genre } = useGenre();
   const [search, setSearch] = useState("");
   const filtered = artists.filter(
     (a) =>
@@ -28,7 +28,7 @@ export default function Catalog() {
     <section id="collection" className="section collection">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">01 / THE RECORD COLLECTION</p>
+          <p className="eyebrow">02 / THE RECORD COLLECTION</p>
           <h2>
             Crate-digging.
             <br />
@@ -42,22 +42,7 @@ export default function Catalog() {
         </p>
       </div>
       <div className="catalog-controls">
-        <div
-          className="filter-tabs"
-          role="group"
-          aria-label="Filter artists by genre"
-        >
-          {["All sounds", ...genres].map((g) => (
-            <button
-              type="button"
-              key={g}
-              aria-pressed={genre === g}
-              onClick={() => setGenre(g)}
-            >
-              {g}
-            </button>
-          ))}
-        </div>
+        <GenreTabs variant="catalog" />
         <label className="search-box">
           <span className="sr-only">Search artists or songs</span>
           <span aria-hidden="true">⌕</span>
@@ -71,8 +56,9 @@ export default function Catalog() {
       </div>
       <p className="catalog-note">
         Hand-picked essentials from the late 80s and 90s, with a few later
-        favorites. Spotify and YouTube links open search results; these are not
-        live popularity rankings. Artist photographs may be from later years.
+        favorites. Choose Spotify, YouTube, Apple Music, or Last.fm to explore
+        each song. Links open searches or discovery pages; availability and playback
+        depend on the service. Artist photographs may be from later years.
       </p>
       <p
         className="catalog-results"
@@ -104,6 +90,15 @@ export default function Catalog() {
               </div>
               <h3>{artist.name}</h3>
               <p>{artist.bio}</p>
+              <a
+                className="artist-discography"
+                href={artistDiscographyUrl(artist)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Explore ${artist.name}'s discography on Last.fm (opens a new tab)`}
+              >
+                Explore discography on Last.fm <ArrowIcon />
+              </a>
               <details>
                 <summary>
                   {artist.songs.length} essential tracks
@@ -116,17 +111,10 @@ export default function Catalog() {
                   {artist.songs.map((song, index) => (
                     <li key={song}>
                       <span>{String(index + 1).padStart(2, "0")}</span>
-                      <a
-                        href={trackSearch(artist, song)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`Find ${song} by ${artist.name} on ${trackPlatformLabel(artist)} (opens a new tab)`}
-                      >
-                        {song}
-                        <span aria-hidden="true">
-                          <ArrowIcon />
-                        </span>
-                      </a>
+                      <div className="track-details">
+                        <span className="track-title">{song}</span>
+                        <TrackLinks artist={artist} song={song} />
+                      </div>
                     </li>
                   ))}
                 </ol>

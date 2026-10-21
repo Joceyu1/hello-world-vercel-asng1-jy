@@ -1282,3 +1282,69 @@ body {
   white-space: normal;
   line-height: 1.7;
 }
+
+/* Each song offers a platform choice without hiding its title. */
+.track-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.track-title {
+  display: block;
+  font-size: 12px;
+  line-height: 1.65;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.track-platform-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.track-list .track-platform-link,
+.track-platform-link {
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  gap: 4px;
+  color: #2641b5;
+  font: 700 10px/1.8 "Space Mono", "Courier New", monospace;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 3px 0;
+}
+
+.track-platform-link:hover,
+.track-list .track-platform-link:hover {
+  color: #171717;
+}
+
+.artist-discography {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+  font: 700 10px/1.8 "Space Mono", "Courier New", monospace;
+  color: var(--street-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.daily-drop > .track-platform-links {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.hero-actions {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 800px) {
+  .daily-drop {
+    flex-wrap: wrap;
+  }
+}

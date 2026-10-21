@@ -18,7 +18,7 @@ execFileSync("./node_modules/.bin/tsc", [
   "--skipLibCheck",
 ]);
 const require = createRequire(import.meta.url);
-const { artists, genres, spotifySearch, trackSearch, trackPlatformLabel } = require(
+const { artists, genres, spotifySearch, trackSearch, trackPlatformLabel, trackLinks, artistDiscographyUrl } = require(
   join(out, "artists.js"),
 );
 const { buildPrompt, parseNote, validateInput } = require(
@@ -128,6 +128,40 @@ test("artists without a platform override retain Spotify search links", () => {
     spotifySearch("A Tribe Called Quest", "Can I Kick It?"),
   );
   assert.equal(trackPlatformLabel(artist), "Spotify");
+});
+test("every song offers its original service plus Apple Music and Last.fm discovery", () => {
+  for (const artist of artists) {
+    for (const song of artist.songs) {
+      const links = trackLinks(artist, song);
+      assert.deepEqual(links.map((link) => link.platform), [trackPlatformLabel(artist), "Apple Music", "Last.fm"]);
+      assert.equal(links[0].href, trackSearch(artist, song));
+      const apple = new URL(links[1].href);
+      assert.equal(apple.origin, "https://music.apple.com");
+      assert.equal(apple.pathname, "/us/search");
+      assert.equal(apple.searchParams.get("term"), `${artist.name} ${song}`);
+      const lastfm = new URL(links[2].href);
+      assert.equal(lastfm.origin, "https://www.last.fm");
+      assert.equal(lastfm.pathname, "/search/tracks");
+      assert.equal(lastfm.searchParams.get("q"), `${artist.name} ${song}`);
+    }
+  }
+});
+test("alternate-service links preserve Unicode and punctuation without injecting URL parameters", () => {
+  const artist = { ...artists[0], name: "A & B / 樂團" };
+  const song = "That's The Way (就是這樣) #1 & More?";
+  const links = trackLinks(artist, song);
+  assert.equal(new URL(links[1].href).searchParams.get("term"), `${artist.name} ${song}`);
+  assert.equal(new URL(links[2].href).searchParams.get("q"), `${artist.name} ${song}`);
+  for (const link of links) assert.equal(new URL(link.href).hash, "");
+});
+test("artist discography links encode artist names as one Last.fm path segment", () => {
+  for (const name of ["A Tribe Called Quest", "A & B / 樂團? #1"]) {
+    const url = new URL(artistDiscographyUrl({ ...artists[0], name }));
+    assert.equal(url.origin, "https://www.last.fm");
+    assert.equal(url.pathname, `/music/${encodeURIComponent(name)}/+albums`);
+    assert.equal(url.search, "");
+    assert.equal(url.hash, "");
+  }
 });
 test("prompt retains input, real songs, and creative safety boundaries", () => {
   const prompt = buildPrompt(input);

@@ -1,0 +1,132 @@
+/* Genre filters share one selection: the blue strip jumps to the collection. */
+.genre-browser {
+  min-width: 0;
+  max-width: 100%;
+  font-family: "Space Mono", "Courier New", monospace;
+}
+
+.genre-browser-strip {
+  padding: 18px 5% 0;
+  background: var(--street-blue);
+  border-top: 2px solid #19191c;
+  border-bottom: 3px solid #19191c;
+  color: #fff8e7;
+}
+
+.genre-browser-label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  line-height: 1.5;
+}
+
+.genre-browser-track {
+  display: flex;
+  align-items: stretch;
+  gap: 5px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-color: #d7ff39 #1b36a5;
+  scrollbar-width: thin;
+  padding: 4px 4px 8px;
+  margin: -4px -4px 0;
+}
+
+.genre-browser-tab {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 13px 15px;
+  border: 1.5px solid #15151b;
+  border-bottom: 3px solid #15151b;
+  border-radius: 11px 11px 0 0;
+  background: #1c35a2;
+  color: #fff8e7;
+  font: 700 10px/1.4 "Space Mono", "Courier New", monospace;
+  white-space: nowrap;
+  text-transform: uppercase;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.genre-browser-tab:hover {
+  background: #122672;
+}
+
+.genre-browser-tab[aria-pressed="true"] {
+  background: #f8f3e8;
+  color: #23221f;
+  border-top: 4px solid var(--lime);
+  padding-top: 10px;
+  border-bottom-color: #f8f3e8;
+}
+
+.genre-browser-tab:focus-visible {
+  outline: 3px solid var(--street-orange);
+  outline-offset: 1px;
+}
+
+.genre-browser-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-size: 9px;
+}
+
+.genre-browser-catalog {
+  width: 100%;
+  border-bottom: 2px solid #23221f;
+  color: #23221f;
+}
+
+.genre-browser-catalog .genre-browser-label {
+  color: var(--street-blue);
+}
+
+.genre-browser-catalog .genre-browser-track {
+  scrollbar-color: #2649dc #ded6c5;
+}
+
+.genre-browser-catalog .genre-browser-tab {
+  background: #e7e0d1;
+  color: #39342a;
+}
+
+.genre-browser-catalog .genre-browser-tab:hover {
+  background: #d6cdbb;
+}
+
+.genre-browser-catalog .genre-browser-tab[aria-pressed="true"] {
+  color: #fff8e7;
+  background: #2649dc;
+  border-bottom-color: #2649dc;
+}
+
+@media (max-width: 540px) {
+  .genre-browser-strip {
+    padding: 16px 6% 0;
+  }
+
+  .genre-browser-tab {
+    min-height: 46px;
+    gap: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .genre-browser-tab {
+    transition: none;
+  }
+}

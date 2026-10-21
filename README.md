@@ -77,6 +77,14 @@ The community wall renders its initial feed on the server, then refreshes publis
 
 The browser uses only the public publishable key and the listener's session. AI requests, generation reservations/publication, and vote submission remain server actions; no Gemini or service-role key is exposed. This change needs no new database migration. Local browser transport checks use an isolated HTTP fixture, not the live database.
 
+### Genre tabs, listening services, and voting discovery
+
+The blue genre strip is interactive: choose a browser-style tab to jump to the collection filtered to that genre. The collection's tabs share the same selection, show artist counts, and support Left/Right/Home/End keyboard navigation with Enter/Space to activate. Search still narrows artists and songs within the selected genre. Each artist has an expandable ten-track essentials list plus a Last.fm discography link. This curated list is not a complete album discography.
+
+Every song and the daily pick offer the existing Spotify or YouTube link alongside Apple Music and Last.fm search/discovery links. Playback and catalog availability depend on each external service; Last.fm is for discovery and is not a promise of full-track streaming. No music-service API credentials are required. The existing L.A. Boyz YouTube links are retained.
+
+The community wall now sits immediately after the hero/genre tabs, before the moodboard and full artist catalog. The header and hero link directly to ratings. These votes still rate community AI liner notes, with the existing Columbia sign-in requirement, one ballot per note, persistence, and RLS.
+
 ## Validation
 
 ```sh

@@ -3,15 +3,14 @@ import Link from "next/link";
 import Image from "next/image";
 import CityScenes from "./components/city-scenes";
 import Catalog from "./components/catalog";
+import GenreTabs, { GenreProvider } from "./components/genre-tabs";
+import TrackLinks from "./components/track-links";
 import Studio from "./components/studio";
 import Wall from "./components/wall";
 import { getFeed } from "@/lib/music/feed";
 import {
   artists,
-  genres,
   getDailyArtist,
-  trackSearch,
-  trackPlatformLabel,
 } from "@/lib/music/artists";
 export const dynamic = "force-dynamic";
 // Leave time around the 45-second AI deadline for authentication and saving.
@@ -24,7 +23,7 @@ export default async function Home() {
   const { notes, signedIn, issue } = await getFeed();
   const dailyArtist = getDailyArtist();
   return (
-    <>
+    <GenreProvider>
       <section className="hero">
         <div className="hero-photo-background" aria-hidden="true">
           <Image
@@ -59,8 +58,8 @@ export default async function Home() {
                 <ArrowIcon />
               </span>
             </a>
-            <a className="button button-outline" href="#studio">
-              Make a B-side <span aria-hidden="true">＋</span>
+            <a className="button button-outline" href="#wall">
+              Rate the B-sides <span aria-hidden="true">↑ ↓</span>
             </a>
           </div>
           <div className="hero-stats">
@@ -119,13 +118,8 @@ export default async function Home() {
           </div>
         </div>
       </section>
-      <div className="genre-strip">
-        {genres.map((genre) => (
-          <span className="genre-strip-item" key={genre}>
-            {genre} <b aria-hidden="true">✳</b>
-          </span>
-        ))}
-      </div>
+      <GenreTabs variant="strip" />
+      <Wall notes={notes} signedIn={signedIn} issue={issue} />
       <CityScenes />
       <div className="daily-drop">
         <div>
@@ -138,20 +132,10 @@ export default async function Home() {
         <span className="daily-description">
           A daily rotation from the collection. Come back for a new pick.
         </span>
-        <a
-          href={trackSearch(dailyArtist, dailyArtist.songs[0])}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Find on {trackPlatformLabel(dailyArtist)}{" "}
-          <span aria-hidden="true">
-            <ArrowIcon />
-          </span>
-        </a>
+        <TrackLinks artist={dailyArtist} song={dailyArtist.songs[0]} />
       </div>
       <Catalog />
       <Studio signedIn={signedIn} />
-      <Wall notes={notes} signedIn={signedIn} issue={issue} />
       <section className="closing">
         <div className="closing-photo-background" aria-hidden="true">
           <Image
@@ -176,6 +160,6 @@ export default async function Home() {
           <ArrowIcon />
         </Link>
       </section>
-    </>
+    </GenreProvider>
   );
 }

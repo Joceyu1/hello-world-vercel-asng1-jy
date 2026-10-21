@@ -123,13 +123,13 @@ export default function Wall({
     <section id="wall" className="section wall">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">03 / THE COMMUNITY WALL</p>
+          <p className="eyebrow">01 / THE COMMUNITY WALL · RATE THE B-SIDES</p>
           <h2>Good taste is a team sport.</h2>
         </div>
         <p>
-          Fresh ideas. Honest votes.
+          Read a note. Give it an upvote or downvote.
           <br />
-          Help the best B-sides rise.
+          Sign in with Columbia Google to rate. One vote per note.
         </p>
       </div>
       <div className="wall-controls">

@@ -7,6 +7,7 @@ import "@fontsource/space-mono/latin-400.css";
 import "@fontsource/space-mono/latin-700.css";
 import "./globals.css";
 import "./street-theme.css";
+import "./genre-tabs.css";
 export const metadata: Metadata = {
   title: "SIDE B — Off the wall. On repeat.",
   description:
@@ -29,9 +30,9 @@ export default function RootLayout({
             <i>®</i>
           </Link>
           <nav aria-label="Main navigation">
+            <Link href="/#wall">Rate B-sides</Link>
             <Link href="/#collection">The collection</Link>
             <Link href="/#studio">AI studio</Link>
-            <Link href="/#wall">Community</Link>
           </nav>
           <Link href="/profile" className="header-account">
             Your profile{" "}

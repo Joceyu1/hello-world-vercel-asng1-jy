@@ -676,6 +676,26 @@ export function trackPlatformLabel(artist: Artist) {
   return artist.trackPlatform === "youtube" ? "YouTube" : "Spotify";
 }
 
+export function artistDiscographyUrl(artist: Artist) {
+  return `https://www.last.fm/music/${encodeURIComponent(artist.name)}/+albums`;
+}
+
+export type TrackLink = {
+  platform: "Spotify" | "YouTube" | "Apple Music" | "Last.fm";
+  href: string;
+};
+
+// Public search/discovery destinations, not verified catalog matches or a
+// promise of free playback. Last.fm can provide track information and links.
+export function trackLinks(artist: Artist, song: string): TrackLink[] {
+  const query = encodeURIComponent(`${artist.name} ${song}`);
+  return [
+    { platform: trackPlatformLabel(artist), href: trackSearch(artist, song) },
+    { platform: "Apple Music", href: `https://music.apple.com/us/search?term=${query}` },
+    { platform: "Last.fm", href: `https://www.last.fm/search/tracks?q=${query}` },
+  ];
+}
+
 export function getDailyArtist() {
   return artists[Math.floor(Date.now() / 86400000) % artists.length];
 }
