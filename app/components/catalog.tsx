@@ -6,7 +6,7 @@ import GenreTabs, { useGenre } from "./genre-tabs";
 import { useState, type CSSProperties } from "react";
 import {
   artists,
-  artistDiscographyUrl,
+  artistLinks,
 } from "@/lib/music/artists";
 
 const trackCount = artists.reduce(
@@ -90,15 +90,23 @@ export default function Catalog() {
               </div>
               <h3>{artist.name}</h3>
               <p>{artist.bio}</p>
-              <a
-                className="artist-discography"
-                href={artistDiscographyUrl(artist)}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Explore ${artist.name}'s discography on Last.fm (opens a new tab)`}
-              >
-                Explore discography on Last.fm <ArrowIcon />
-              </a>
+              <div className="artist-discovery-links">
+                {artistLinks(artist).map(({ platform, href }) => (
+                  <a
+                    key={platform}
+                    className="artist-discography"
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={platform === "Last.fm"
+                      ? `Explore ${artist.name}'s discography on Last.fm (opens a new tab)`
+                      : `Search for ${artist.name} on ${platform} (opens a new tab)`}
+                  >
+                    {platform === "Last.fm" ? "Explore discography on Last.fm" : platform}{" "}
+                    <ArrowIcon />
+                  </a>
+                ))}
+              </div>
               <details>
                 <summary>
                   {artist.songs.length} essential tracks

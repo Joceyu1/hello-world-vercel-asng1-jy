@@ -685,6 +685,20 @@ export type TrackLink = {
   href: string;
 };
 
+export function artistLinks(artist: Artist): TrackLink[] {
+  const links: TrackLink[] = [
+    { platform: "Last.fm", href: artistDiscographyUrl(artist) },
+  ];
+  if (artist.id !== "la-boyz") {
+    const query = encodeURIComponent(artist.name);
+    links.push(
+      { platform: "Apple Music", href: `https://music.apple.com/us/search?term=${query}` },
+      { platform: "Spotify", href: `https://open.spotify.com/search/${query}` },
+    );
+  }
+  return links;
+}
+
 // Public search/discovery destinations, not verified catalog matches or a
 // promise of free playback. Last.fm can provide track information and links.
 export function trackLinks(artist: Artist, song: string): TrackLink[] {
