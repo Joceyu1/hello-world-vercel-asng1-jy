@@ -1,13 +1,4 @@
 /* Genre filters share one selection: the blue strip jumps to the collection. */
-.genre-sections {
-  display: grid;
-  gap: 48px;
-}
-
-.genre-section {
-  min-width: 0;
-}
-
 .genre-introduction {
   display: flex;
   flex-wrap: wrap;
