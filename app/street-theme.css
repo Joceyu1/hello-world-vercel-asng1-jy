@@ -675,7 +675,7 @@ body {
   line-height: 1.6;
 }
 
-.artist-info h3 {
+.artist-info h4 {
   font:
     400 29px/1.1 "Anton",
     Impact,
@@ -1174,7 +1174,7 @@ body {
   .record-art {
     height: 280px;
   }
-  .artist-info h3 {
+  .artist-info h4 {
     font-size: 32px;
   }
   .artist-info > p {

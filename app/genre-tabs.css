@@ -1,4 +1,49 @@
 /* Genre filters share one selection: the blue strip jumps to the collection. */
+.genre-sections {
+  display: grid;
+  gap: 48px;
+}
+
+.genre-section {
+  min-width: 0;
+}
+
+.genre-introduction {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 32px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  border-left: 4px solid var(--street-blue);
+  background: #eae3d4;
+}
+
+.genre-introduction > div {
+  flex: 1 1 210px;
+  min-width: 0;
+}
+
+.genre-introduction .eyebrow {
+  margin: 0 0 8px;
+  color: var(--street-blue);
+}
+
+.genre-introduction h3 {
+  margin: 0;
+  font: 400 clamp(26px, 3vw, 36px)/1.2 "Anton", Impact, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.genre-introduction > p {
+  flex: 3 1 340px;
+  min-width: 0;
+  margin: 0;
+  color: #595448;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
 .genre-browser {
   min-width: 0;
   max-width: 100%;

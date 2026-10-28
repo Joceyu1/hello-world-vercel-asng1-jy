@@ -721,7 +721,7 @@ h2 {
   color: var(--muted);
   margin-bottom: 13px;
 }
-.artist-info h3 {
+.artist-info h4 {
   font-size: 22px;
   letter-spacing: -0.6px;
   line-height: 1.2;
@@ -1287,7 +1287,7 @@ fieldset {
   .artist-info {
     padding: 17px 16px 0;
   }
-  .artist-info h3 {
+  .artist-info h4 {
     font-size: 20px;
   }
   .artist-info > p {
@@ -1581,7 +1581,7 @@ fieldset {
   .artist-info {
     padding: 20px 20px 0;
   }
-  .artist-info h3 {
+  .artist-info h4 {
     font-size: 25px;
   }
   .artist-info > p {

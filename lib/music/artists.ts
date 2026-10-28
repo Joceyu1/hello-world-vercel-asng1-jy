@@ -8,6 +8,16 @@ export const genres = [
   "Eurobeat / Hi-NRG",
 ] as const;
 export type Genre = (typeof genres)[number];
+export const genreDescriptions: Record<Genre, string> = {
+  "Hip hop": "Born from Black and Latino communities in 1970s New York, hip hop brings MCs, DJs, and rhythmic storytelling together. In this collection, listen for sampled jazz and soul, breakbeats, and rhymes that move between neighborhood stories and playful conversation.",
+  "New jack swing": "New jack swing took shape in the late 1980s, pairing R&B vocals with hip-hop production and dance-floor energy. Listen for swung drum-machine patterns, sharp snares, bright synths, and vocal harmonies that give the groove its bounce.",
+  "R&B": "Rhythm and blues has deep roots in Black American music, with soul, gospel, and funk shaping its many branches. These 90s selections foreground expressive singing, layered harmonies, and grooves that range from slow jams to hip-hop-influenced beats.",
+  "Techno": "Techno emerged in 1980s Detroit through Black electronic innovators exploring machines, rhythm, and futurism. Listen for steady four-on-the-floor kicks, repeating synth patterns, and textures that build gradually, turning small changes into big moments on the dance floor.",
+  "Rave": "Rave is a dance-music culture rather than one fixed genre. This corner of the collection follows the UK's late-80s and early-90s scene, where breakbeats, house and techno influences, bold samples, and euphoric synths powered shared nights on crowded dance floors.",
+  "Eurodance": "Eurodance flourished across Europe in the early 1990s, joining club production with pop hooks. Listen for driving four-on-the-floor drums, bright synth riffs, and, often, a sung chorus trading places with rap verses: music built to carry from the club to the radio.",
+  "Eurobeat / Hi-NRG": "Hi-NRG's fast electronic disco grooves helped shape the brighter, more melodic Eurobeat sound. These related styles favor pulsing bass, soaring hooks, and brisk tempos; Eurobeat later found a devoted audience in Japan's ParaPara dance scene and car-culture soundtracks.",
+};
+
 export type Artist = {
   id: string;
   name: string;
