@@ -7,7 +7,7 @@ import GenreTabs, { GenreProvider } from "./components/genre-tabs";
 import TrackLinks from "./components/track-links";
 import Studio from "./components/studio";
 import Wall from "./components/wall";
-import { getFeed } from "@/lib/music/feed";
+import { getFeed, getPopGroupsReady } from "@/lib/music/feed";
 import {
   artists,
   getDailyArtist,
@@ -20,7 +20,9 @@ const trackCount = artists.reduce(
   0,
 );
 export default async function Home() {
-  const { notes, signedIn, issue } = await getFeed();
+  const [{ notes, signedIn, issue }, popGroupsReady] = await Promise.all([
+    getFeed(), getPopGroupsReady(),
+  ]);
   const dailyArtist = getDailyArtist();
   return (
     <GenreProvider>
@@ -135,7 +137,7 @@ export default async function Home() {
         <TrackLinks artist={dailyArtist} song={dailyArtist.songs[0]} />
       </div>
       <Catalog />
-      <Studio signedIn={signedIn} />
+      <Studio signedIn={signedIn} popGroupsReady={popGroupsReady} />
       <section className="closing">
         <div className="closing-photo-background" aria-hidden="true">
           <Image

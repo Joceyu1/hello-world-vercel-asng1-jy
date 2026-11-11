@@ -21,9 +21,9 @@ export default function Catalog() {
   const filtered = artists.filter(
     (a) =>
       (genre === "All sounds" || a.genre === genre) &&
-      `${a.name} ${a.hometown} ${a.songs.join(" ")}`
+      `${a.name} ${(a.aliases ?? []).join(" ")} ${a.hometown} ${a.songs.join(" ")}`
         .toLowerCase()
-        .includes(search.toLowerCase()),
+        .includes(search.trim().toLowerCase()),
   );
   return (
     <section id="collection" className="section collection">
@@ -56,7 +56,7 @@ export default function Catalog() {
         </label>
       </div>
       <p className="catalog-note">
-        Hand-picked essentials from the late 80s and 90s, with a few later
+        Hand-picked essentials from the late 80s and 90s, plus early-2000s pop
         favorites. Choose Spotify, YouTube, Apple Music, or Last.fm to explore
         each song. Links open searches or discovery pages; availability and playback
         depend on the service. Artist photographs may be from later years.

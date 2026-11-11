@@ -536,7 +536,7 @@ test("expanded artists can reserve notes and unknown artists remain rejected", a
   );
 });
 
-test("database artist whitelist exactly matches all 30 catalog artists", async () => {
+test("database artist whitelist exactly matches all 40 catalog artists", async () => {
   // Use the actual catalog export rather than maintaining another copied list.
   const compiled = ts.transpileModule(
     readFileSync(new URL("../lib/music/artists.ts", import.meta.url), "utf8"),
@@ -545,7 +545,7 @@ test("database artist whitelist exactly matches all 30 catalog artists", async (
   const catalogExports = {};
   new Function("exports", compiled.outputText)(catalogExports);
   const artistIds = catalogExports.artists.map((artist) => artist.id).sort();
-  assert.equal(artistIds.length, 30);
+  assert.equal(artistIds.length, 40);
   const { rows } = await db.query(
     "select pg_get_constraintdef(oid) as definition from pg_constraint where conrelid='public.generations'::regclass and conname='generations_artist_id_check'",
   );
@@ -563,6 +563,80 @@ test("database artist whitelist exactly matches all 30 catalog artists", async (
     assert.deepEqual(inserted.rows.map((row) => row.artist_id).sort(), artistIds);
   } finally {
     await db.exec("rollback");
+  }
+});
+
+test("pop-group migration preserves saved notes, ballots, and policies while enabling every new group", async () => {
+  const upgraded = new PGlite();
+  const migrationName = "202611110001_pop_groups.sql";
+  const newIds = [
+    "nsync", "destinys-child", "backstreet-boys", "westlife", "spice-girls",
+    "take-that", "boyzone", "98-degrees", "all-saints", "s-club-7",
+  ];
+  try {
+    await createLegacyFixture(upgraded, "first_name text not null, last_name text not null, avatar_path text");
+    for (const migration of readdirSync(migrationDirectory).filter((name) => name.endsWith(".sql") && name < migrationName).sort()) {
+      await upgraded.exec(readFileSync(new URL(migration, migrationDirectory), "utf8"));
+    }
+    await upgraded.exec("begin; set local role service_role");
+    const savedId = (await upgraded.query(
+      "select public.reserve_generation($1,'tribe','mood','scene','An existing full prompt') as id", [alice],
+    )).rows[0].id;
+    await upgraded.query("update public.generations set title='Saved note', caption='Existing caption', model='test-model', status='published' where id=$1", [savedId]);
+    await upgraded.exec("commit; begin; set local role authenticated");
+    await upgraded.query("select set_config('request.jwt.claim.sub', $1, true)", [alice]);
+    await upgraded.query("insert into public.votes(generation_id,user_id,value) values($1,$2,1)", [savedId, alice]);
+    await upgraded.exec("commit");
+
+    async function snapshot() {
+      return {
+        notes: (await upgraded.query("select * from public.generations order by id")).rows,
+        votes: (await upgraded.query("select * from public.votes order by id")).rows,
+        policies: (await upgraded.query("select * from pg_policies where schemaname in ('public','storage') order by schemaname, tablename, policyname")).rows,
+        grants: (await upgraded.query("select grantee, table_name, privilege_type from information_schema.role_table_grants where table_schema='public' order by grantee, table_name, privilege_type")).rows,
+      };
+    }
+    const beforeUpgrade = await snapshot();
+    const migration = readFileSync(new URL(migrationName, migrationDirectory), "utf8");
+    assert.equal((await upgraded.query("select to_regprocedure('public.side_b_pop_groups_ready()') as marker")).rows[0].marker, null);
+
+    // An unexpected whitelist must leave both the original constraint and the
+    // absent rollout marker untouched when the attempted upgrade rolls back.
+    const originalConstraint = (await upgraded.query("select pg_get_constraintdef(oid) as definition from pg_constraint where conrelid='public.generations'::regclass and conname='generations_artist_id_check'")).rows[0].definition;
+    await upgraded.exec("alter table public.generations drop constraint generations_artist_id_check; alter table public.generations add constraint generations_artist_id_check check (artist_id in ('tribe', 'unexpected-catalog'))");
+    await assert.rejects(() => upgraded.exec(migration), /Unexpected SIDE B artist whitelist/);
+    await upgraded.exec("rollback");
+    assert.equal((await upgraded.query("select to_regprocedure('public.side_b_pop_groups_ready()') as marker")).rows[0].marker, null);
+    const refusedConstraint = (await upgraded.query("select pg_get_constraintdef(oid) as definition from pg_constraint where conrelid='public.generations'::regclass and conname='generations_artist_id_check'")).rows[0].definition;
+    assert.match(refusedConstraint, /unexpected-catalog/);
+    await upgraded.exec(`alter table public.generations drop constraint generations_artist_id_check; alter table public.generations add constraint generations_artist_id_check ${originalConstraint}`);
+    assert.deepEqual(await snapshot(), beforeUpgrade);
+
+    await upgraded.exec(migration);
+    assert.deepEqual(await snapshot(), beforeUpgrade);
+    for (const role of ["anon", "authenticated", "service_role"]) {
+      await upgraded.exec(`begin; set local role ${role}`);
+      assert.deepEqual((await upgraded.query("select public.side_b_pop_groups_ready() as ready")).rows, [{ ready: true }]);
+      await upgraded.exec("rollback");
+    }
+    // A repeated reviewed installation is harmless and preserves the same data.
+    await upgraded.exec(migration);
+    assert.deepEqual(await snapshot(), beforeUpgrade);
+
+    for (const artistId of newIds) {
+      // Each rollback restores the fixture quota as well as generated content.
+      await upgraded.exec("begin; set local role service_role");
+      const id = (await upgraded.query(
+        "select public.reserve_generation($1,$2,'mood','scene','A new group prompt') as id", [bob, artistId],
+      )).rows[0].id;
+      await upgraded.query("update public.generations set title='A new group note', caption='A real saved result', model='test-model', status='published' where id=$1", [id]);
+      await upgraded.exec("set local role anon");
+      assert.deepEqual((await upgraded.query("select artist_id,title from public.generations where id=$1", [id])).rows, [{ artist_id: artistId, title: "A new group note" }]);
+      await upgraded.exec("rollback");
+    }
+    assert.deepEqual(await snapshot(), beforeUpgrade);
+  } finally {
+    await upgraded.close();
   }
 });
 

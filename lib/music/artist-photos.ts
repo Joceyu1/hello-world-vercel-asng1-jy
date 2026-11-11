@@ -14,8 +14,117 @@ export type ArtistPhoto = {
 };
 
 // Photographs and source credits selected for these specific artists.
-// Local files are bundled; sleeve images retain their publisher's CDN URLs.
+// Local files are bundled; remote photos and sleeves use verified source URLs.
 export const artistPhotos: Record<string, ArtistPhoto> = {
+  "nsync": {
+    "src": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/36/22/d6/3622d665-873c-57b8-392b-971292e6086f/012414170224.jpg/600x600bb.jpg",
+    "originalUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/36/22/d6/3622d665-873c-57b8-392b-971292e6086f/012414170224.jpg/3600x3600bb.jpg",
+    "alt": "The five members of *NSYNC pictured as marionettes on the No Strings Attached album sleeve",
+    "caption": "Sleeve image · No Strings Attached (2000)",
+    "credit": "Album artwork via Apple Music / Shazam",
+    "sourceUrl": "https://music.apple.com/us/album/no-strings-attached/303171298",
+    "kind": "sleeve",
+    "fit": "contain"
+  },
+  "destinys-child": {
+    "src": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Destiny%27s_Child_Group.jpg",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Destiny%27s_Child_Group.jpg",
+    "alt": "Photographic montage of Beyoncé, Kelly Rowland, and Michelle Williams of Destiny's Child",
+    "caption": "Destiny’s Child · member-photo montage, 2008–2009",
+    "credit": "Luciano B.; photographs by Jen Keys, Sry85, and J&R Music World",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Destiny%27s_Child_Group.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "fit": "contain"
+  },
+  "backstreet-boys": {
+    "src": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Backstreet_Boys_2019_by_Glenn_Francis.jpg",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Backstreet_Boys_2019_by_Glenn_Francis.jpg",
+    "alt": "All five Backstreet Boys at the 2019 iHeartRadio Music Awards in Los Angeles",
+    "caption": "Backstreet Boys · iHeartRadio Music Awards, 2019",
+    "credit": "© Glenn Francis, www.PacificProDigital.com",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Backstreet_Boys_2019_by_Glenn_Francis.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "fit": "contain"
+  },
+  "westlife": {
+    "src": "https://upload.wikimedia.org/wikipedia/commons/d/de/Westlife_2011_2.jpg",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/de/Westlife_2011_2.jpg",
+    "alt": "Westlife performing on the Gravity Tour in Hanoi, Vietnam, in October 2011",
+    "caption": "Westlife · Gravity Tour, Hanoi, 2011",
+    "credit": "Khánh Hmoong",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Westlife_2011_2.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+    "fit": "contain"
+  },
+  "spice-girls": {
+    "src": "https://upload.wikimedia.org/wikipedia/commons/0/00/Spice_Girls_2008_01.jpg",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/0/00/Spice_Girls_2008_01.jpg",
+    "alt": "The Spice Girls performing at the Air Canada Centre in Toronto in February 2008",
+    "caption": "Spice Girls · Toronto, 2008",
+    "credit": "Eric Mutrie",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Spice_Girls_2008_01.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+    "fit": "contain"
+  },
+  "take-that": {
+    "src": "https://upload.wikimedia.org/wikipedia/commons/3/32/Take_That.jpg",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/3/32/Take_That.jpg",
+    "alt": "Take That performing on The Circus tour in 2009",
+    "caption": "Take That · The Circus tour, 2009",
+    "credit": "Rach",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Take_That.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "fit": "contain"
+  },
+  "boyzone": {
+    "src": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Boyzone_2009.jpg",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Boyzone_2009.jpg",
+    "alt": "Boyzone performing in 2009",
+    "caption": "Boyzone · 2009",
+    "credit": "MmangakaMaidenphotography",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Boyzone_2009.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "fit": "contain"
+  },
+  "98-degrees": {
+    "src": "https://upload.wikimedia.org/wikipedia/commons/c/c0/98_Degrees_Package_Tour_2013-2.jpg",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c0/98_Degrees_Package_Tour_2013-2.jpg",
+    "alt": "98 Degrees performing during The Package Tour in 2013: Drew Lachey, Nick Lachey, Justin Jeffre and Jeff Timmons",
+    "caption": "98 Degrees · The Package Tour, 2013",
+    "credit": "Robyn Paul",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:98_Degrees_Package_Tour_2013-2.jpg",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "fit": "contain"
+  },
+  "s-club-7": {
+    "src": "https://upload.wikimedia.org/wikipedia/commons/5/5b/S_Club_7_2015.jpg",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/5/5b/S_Club_7_2015.jpg",
+    "alt": "S Club 7 performing at the O2 Arena in 2015",
+    "caption": "S Club 7 · O2 Arena, 2015",
+    "credit": "Emily Schievano",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:S_Club_7_2015.jpg",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "fit": "contain"
+  },
+  "all-saints": {
+    "src": "https://upload.wikimedia.org/wikipedia/commons/7/75/All_Saints_in_2007.jpg",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/75/All_Saints_in_2007.jpg",
+    "alt": "Photographic montage of All Saints members performing in 2007",
+    "caption": "All Saints · photographic montage, 2007",
+    "credit": "ger1axg",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:All_Saints_in_2007.jpg",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "fit": "contain"
+  },
   "808": {
     src: "/images/artists/808.jpg",
     alt: "Graham Massey of 808 State at Music Tech Fest, 2015",

@@ -52,8 +52,18 @@ const newArtistIds = [
   "dead-or-alive",
   "dave-rodgers",
   "sinitta",
+  "nsync",
+  "destinys-child",
+  "backstreet-boys",
+  "westlife",
+  "spice-girls",
+  "take-that",
+  "boyzone",
+  "98-degrees",
+  "all-saints",
+  "s-club-7",
 ];
-test("catalog preserves the original artists and contains thirty distinct artists", () => {
+test("catalog preserves the original artists and contains forty distinct artists", () => {
   const originalIds = [
     "tribe",
     "de-la",
@@ -66,15 +76,15 @@ test("catalog preserves the original artists and contains thirty distinct artist
     "orbital",
     "808",
   ];
-  assert.equal(artists.length, 30);
-  assert.equal(new Set(artists.map((a) => a.id)).size, 30);
+  assert.equal(artists.length, 40);
+  assert.equal(new Set(artists.map((a) => a.id)).size, 40);
   assert.deepEqual(
     [...artists.map((a) => a.id)].sort(),
     [...originalIds, ...newArtistIds].sort(),
   );
 });
-test("catalog contains three hundred essentials and ten distinct tracks per artist", () => {
-  assert.equal(artists.reduce((sum, a) => sum + a.songs.length, 0), 300);
+test("catalog contains four hundred essentials and ten distinct tracks per artist", () => {
+  assert.equal(artists.reduce((sum, a) => sum + a.songs.length, 0), 400);
   for (const a of artists) {
     const expected = 10;
     assert.equal(a.songs.length, expected, a.name);
@@ -91,6 +101,7 @@ test("genre filters cover every catalog genre including the expanded dance and R
     "Hip hop",
     "New jack swing",
     "R&B",
+    "Pop",
     "Techno",
     "Rave",
     "Eurodance",

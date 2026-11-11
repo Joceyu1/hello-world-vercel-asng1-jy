@@ -2,6 +2,7 @@ export const genres = [
   "Hip hop",
   "New jack swing",
   "R&B",
+  "Pop",
   "Techno",
   "Rave",
   "Eurodance",
@@ -12,6 +13,7 @@ export const genreDescriptions: Record<Genre, string> = {
   "Hip hop": "Born from Black and Latino communities in 1970s New York, hip hop brings MCs, DJs, and rhythmic storytelling together. In this collection, listen for sampled jazz and soul, breakbeats, and rhymes that move between neighborhood stories and playful conversation.",
   "New jack swing": "New jack swing took shape in the late 1980s, pairing R&B vocals with hip-hop production and dance-floor energy. Listen for swung drum-machine patterns, sharp snares, bright synths, and vocal harmonies that give the groove its bounce.",
   "R&B": "Rhythm and blues has deep roots in Black American music, with soul, gospel, and funk shaping its many branches. These 90s selections foreground expressive singing, layered harmonies, and grooves that range from slow jams to hip-hop-influenced beats.",
+  "Pop": "Meet the boy bands and girl groups that helped define late-90s and early-2000s pop. From close vocal harmonies and big ballads to dance-floor choruses, these essentials connect the era's radio hits, choreography, and sing-along hooks.",
   "Techno": "Techno emerged in 1980s Detroit through Black electronic innovators exploring machines, rhythm, and futurism. Listen for steady four-on-the-floor kicks, repeating synth patterns, and textures that build gradually, turning small changes into big moments on the dance floor.",
   "Rave": "Rave is a dance-music culture rather than one fixed genre. This corner of the collection follows the UK's late-80s and early-90s scene, where breakbeats, house and techno influences, bold samples, and euphoric synths powered shared nights on crowded dance floors.",
   "Eurodance": "Eurodance flourished across Europe in the early 1990s, joining club production with pop hooks. Listen for driving four-on-the-floor drums, bright synth riffs, and, often, a sung chorus trading places with rap verses: music built to carry from the club to the radio.",
@@ -21,6 +23,7 @@ export const genreDescriptions: Record<Genre, string> = {
 export type Artist = {
   id: string;
   name: string;
+  aliases?: string[];
   genre: Genre;
   years: string;
   hometown: string;
@@ -669,6 +672,236 @@ export const artists: Artist[] = [
       "I Don't Believe in Miracles",
     ],
   },
+  {
+    "id": "nsync",
+    "name": "*NSYNC",
+    "aliases": [
+      "NSYNC",
+      "N Sync"
+    ],
+    "genre": "Pop",
+    "years": "1996–2001",
+    "hometown": "Orlando, FL",
+    "color": "#d7ff39",
+    "bio": "Orlando's five-piece paired close harmonies and tightly choreographed performances with the glossy production of the late-90s pop boom. Their early albums move from bright dance-pop to the sharper rhythms of No Strings Attached and Celebrity.",
+    "songs": [
+      "I Want You Back",
+      "Tearin' Up My Heart",
+      "Here We Go",
+      "God Must Have Spent a Little More Time on You",
+      "I Drive Myself Crazy",
+      "Bye Bye Bye",
+      "It's Gonna Be Me",
+      "This I Promise You",
+      "Pop",
+      "Gone"
+    ]
+  },
+  {
+    "id": "destinys-child",
+    "name": "Destiny's Child",
+    "genre": "R&B",
+    "years": "1997–2001",
+    "hometown": "Houston, TX",
+    "color": "#ffafdf",
+    "bio": "Houston's Destiny's Child brought intricate vocal harmonies and crisp, conversational rhythms to turn-of-the-millennium R&B. The Writing's on the Wall and Survivor combine self-assured dance tracks with expressive slow jams.",
+    "songs": [
+      "No, No, No, Pt. 2",
+      "Bills, Bills, Bills",
+      "Bug a Boo",
+      "Say My Name",
+      "Jumpin', Jumpin'",
+      "Independent Women, Pt. 1",
+      "Survivor",
+      "Bootylicious",
+      "Emotion",
+      "Dangerously in Love"
+    ]
+  },
+  {
+    "id": "backstreet-boys",
+    "name": "Backstreet Boys",
+    "aliases": [
+      "BSB"
+    ],
+    "genre": "Pop",
+    "years": "1996–2001",
+    "hometown": "Orlando, FL",
+    "color": "#88d7ff",
+    "bio": "Backstreet Boys helped define the late-90s pop-group sound with layered harmonies, dance-floor hooks, and sweeping ballads. Their self-titled breakthrough and Millennium offer an accessible starting point for the era.",
+    "songs": [
+      "I Want It That Way",
+      "Everybody (Backstreet's Back)",
+      "As Long as You Love Me",
+      "Quit Playing Games (With My Heart)",
+      "Show Me the Meaning of Being Lonely",
+      "Larger Than Life",
+      "All I Have to Give",
+      "I'll Never Break Your Heart",
+      "The Call",
+      "Shape of My Heart"
+    ]
+  },
+  {
+    "id": "westlife",
+    "name": "Westlife",
+    "genre": "Pop",
+    "years": "1999–2001",
+    "hometown": "Sligo / Dublin, Ireland",
+    "color": "#ffc347",
+    "bio": "Westlife carried the Irish pop-group tradition into the millennium with rich vocal blends and romantic ballads. Their first albums balance original singles such as My Love with polished interpretations of familiar songs.",
+    "songs": [
+      "Swear It Again",
+      "If I Let You Go",
+      "Flying Without Wings",
+      "I Have a Dream",
+      "Seasons in the Sun",
+      "Fool Again",
+      "My Love",
+      "What Makes a Man",
+      "Uptown Girl",
+      "Queen of My Heart"
+    ]
+  },
+  {
+    "id": "spice-girls",
+    "name": "Spice Girls",
+    "genre": "Pop",
+    "years": "1996–1998",
+    "hometown": "London, England",
+    "color": "#d7ff39",
+    "bio": "The Spice Girls made friendship, individuality, and Girl Power central to a colorful British pop breakthrough. Spice and Spiceworld mix dance-pop energy with playful hooks and memorable ballads.",
+    "songs": [
+      "Wannabe",
+      "Say You'll Be There",
+      "2 Become 1",
+      "Mama",
+      "Who Do You Think You Are",
+      "Spice Up Your Life",
+      "Too Much",
+      "Stop",
+      "Viva Forever",
+      "Goodbye"
+    ]
+  },
+  {
+    "id": "take-that",
+    "name": "Take That",
+    "genre": "Pop",
+    "years": "1992–1996",
+    "hometown": "Manchester, England",
+    "color": "#ffafdf",
+    "bio": "Manchester's Take That helped shape British 90s pop through dance routines, close harmonies, and Gary Barlow's melodic songwriting. Their first run moves from upbeat club-pop to the reflective ballads of Nobody Else.",
+    "songs": [
+      "Pray",
+      "Relight My Fire",
+      "Babe",
+      "Everything Changes",
+      "Love Ain't Here Anymore",
+      "Sure",
+      "Back for Good",
+      "Never Forget",
+      "A Million Love Songs",
+      "How Deep Is Your Love"
+    ]
+  },
+  {
+    "id": "boyzone",
+    "name": "Boyzone",
+    "genre": "Pop",
+    "years": "1994–1998",
+    "hometown": "Dublin, Ireland",
+    "color": "#88d7ff",
+    "bio": "Boyzone brought warm harmonies and an easygoing Irish personality to 90s pop. Their early catalog pairs melodic originals with carefully chosen covers, from Love Me for a Reason to the dramatic No Matter What.",
+    "songs": [
+      "Love Me for a Reason",
+      "Key to My Life",
+      "So Good",
+      "Father and Son",
+      "Coming Home Now",
+      "Words",
+      "A Different Beat",
+      "Isn't It a Wonder",
+      "Picture of You",
+      "No Matter What"
+    ]
+  },
+  {
+    "id": "98-degrees",
+    "name": "98 Degrees",
+    "aliases": [
+      "98°"
+    ],
+    "genre": "Pop",
+    "years": "1997–2000",
+    "hometown": "Los Angeles, CA / Ohio roots",
+    "color": "#ffc347",
+    "bio": "98 Degrees leaned into soul-influenced harmonies and romantic songwriting during the late-90s pop-group wave. Their first albums include tender ballads alongside the Latin-pop lift of Give Me Just One Night.",
+    "songs": [
+      "Invisible Man",
+      "Because of You",
+      "The Hardest Thing",
+      "I Do (Cherish You)",
+      "True to Your Heart",
+      "The Way You Want Me To",
+      "Give Me Just One Night (Una Noche)",
+      "My Everything",
+      "This Gift",
+      "Still"
+    ]
+  },
+  {
+    "id": "all-saints",
+    "name": "All Saints",
+    "genre": "R&B",
+    "years": "1997–2001",
+    "hometown": "London, England",
+    "color": "#d7ff39",
+    "bio": "All Saints blended British pop with R&B, hip-hop, and atmospheric electronic production. Their late-90s debut and the William Orbit collaborations on Saints & Sinners balance conversational vocals with spacious, dreamlike textures.",
+    "songs": [
+      "Never Ever",
+      "I Know Where It's At",
+      "Bootie Call",
+      "Under the Bridge",
+      "Lady Marmalade",
+      "War of Nerves",
+      "Pure Shores",
+      "Black Coffee",
+      "All Hooked Up",
+      "Dreams"
+    ]
+  },
+  {
+    "id": "s-club-7",
+    "name": "S Club 7",
+    "aliases": [
+      "S Club",
+      "SClub7"
+    ],
+    "genre": "Pop",
+    "years": "1999–2001",
+    "hometown": "London, England",
+    "color": "#ffafdf",
+    "bio": "S Club 7 brought a bright, television-friendly blend of dance-pop, disco, and group harmonies to the turn of the millennium. Their early singles move between communal singalongs and the heartfelt ballad Never Had a Dream Come True.",
+    "songs": [
+      "Bring It All Back",
+      "S Club Party",
+      "Two in a Million",
+      "You're My Number One",
+      "Reach",
+      "Natural",
+      "Never Had a Dream Come True",
+      "Don't Stop Movin'",
+      "Have You Ever",
+      "Bring the House Down"
+    ]
+  },
+];
+
+// New studio choices activate together with the database whitelist migration.
+export const popGroupArtistIds: readonly string[] = [
+  "nsync", "destinys-child", "backstreet-boys", "westlife", "spice-girls",
+  "take-that", "boyzone", "98-degrees", "all-saints", "s-club-7",
 ];
 
 export function spotifySearch(artist: string, song: string) {

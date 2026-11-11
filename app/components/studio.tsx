@@ -3,10 +3,10 @@ import ArrowIcon from "@/app/components/arrow-icon";
 import Link from "next/link";
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { artists } from "@/lib/music/artists";
+import { artists, popGroupArtistIds } from "@/lib/music/artists";
 import { moods, scenes } from "@/lib/music/prompt";
 import { publishNote } from "@/app/actions/studio";
-export default function Studio({ signedIn }: { signedIn: boolean }) {
+export default function Studio({ signedIn, popGroupsReady }: { signedIn: boolean; popGroupsReady: boolean }) {
   const [artistId, setArtistId] = useState("tribe");
   const [mood, setMood] = useState<string>(moods[0]);
   const [scene, setScene] = useState<string>(scenes[0]);
@@ -75,8 +75,9 @@ export default function Studio({ signedIn }: { signedIn: boolean }) {
             onChange={(e) => setArtistId(e.target.value)}
           >
             {artists.map((a) => (
-              <option key={a.id} value={a.id}>
+              <option key={a.id} value={a.id} disabled={!popGroupsReady && popGroupArtistIds.includes(a.id)}>
                 {a.name} · {a.genre}
+                {!popGroupsReady && popGroupArtistIds.includes(a.id) ? " · Coming soon to the studio" : ""}
               </option>
             ))}
           </select>
