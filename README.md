@@ -94,6 +94,22 @@ Every song and the daily pick offer the existing Spotify or YouTube link alongsi
 
 The AI Mixtape Studio sits immediately after the hero/genre tabs, followed directly by the community wall so listeners encounter note creation before rating. The moodboard and full artist catalog follow the wall. The header and hero link directly to ratings. These votes still rate community AI liner notes, with the existing Columbia sign-in requirement, one ballot per note, persistence, and RLS.
 
+### Loading and action feedback
+
+Google sign-in, note generation, vote saves, profile/photo updates, and sign-out
+show visible spinners and descriptive pending messages while their requests are
+active. Controls prevent duplicate submissions, and completed actions show
+confirmation or a recoverable error. Returning from Google with browser Back
+restores the sign-in button.
+
+Route navigation uses a loading skeleton. The community wall keeps already-loaded
+notes visible during refresh, shows note placeholders while an empty feed loads,
+and displays an empty or unavailable state only after that request settles.
+Artist photos have loading placeholders that clear on load or an unavailable
+fallback. The indicators use polite screen-reader announcements and respect
+reduced-motion preferences. They follow actual request state, without fabricated
+progress percentages or extra wait timers.
+
 ## Validation
 
 ```sh

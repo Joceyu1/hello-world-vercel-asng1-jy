@@ -156,8 +156,13 @@ test("Google sign-in offers the account chooser without a Columbia domain hint",
   let request;
   const { default: LoginPage } = load("../app/login/page.tsx", {
     "react/jsx-runtime": jsx,
-    react: { useState: (initial) => [initial, () => {}] },
+    react: {
+      useState: (initial) => [initial, () => {}],
+      useRef: (initial) => ({ current: initial }),
+      useEffect() {},
+    },
     "next/link": { default: "Link" },
+    "@/app/components/feedback": { Spinner: "span" },
     "@/lib/supabase/client": { createClient: () => ({ auth: {
       signInWithOAuth: async (options) => { request = options; return { error: null }; },
     } }) },

@@ -20,6 +20,7 @@ function harness({ ownVote = null, signedIn = true, pending = false, result = { 
     "react/jsx-runtime": { jsx: element, jsxs: element },
     react: {
       useEffect() {},
+      useRef: (initial) => ({ current: initial }),
       useState(initial) {
         const index = hook++;
         if (!(index in state)) state[index] = initial;
@@ -30,6 +31,7 @@ function harness({ ownVote = null, signedIn = true, pending = false, result = { 
     "next/navigation": { useRouter: () => ({ refresh() { calls.push({ refresh: true }); } }) },
     "next/link": { default: "a" },
     "@/app/components/arrow-icon": { default: "span" },
+    "@/app/components/feedback": { Spinner: "span", NoteSkeletons: "div" },
     "@/lib/music/artists": { artists: [] },
     "@/lib/music/browser-feed": { getBrowserFeed() { throw new Error("Not used by a card"); } },
     "@/app/actions/studio": { async submitVote(id, value) { calls.push({ id, value }); return result; } },

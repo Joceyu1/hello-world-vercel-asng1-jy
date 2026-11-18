@@ -4,25 +4,32 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { artists } from "@/lib/music/artists";
-import type { FeedNote } from "@/lib/music/feed-data";
+import type { Feed, FeedNote } from "@/lib/music/feed-data";
 import { getBrowserFeed } from "@/lib/music/browser-feed";
 import { submitVote } from "@/app/actions/studio";
+import { NoteSkeletons, Spinner } from "@/app/components/feedback";
 function NoteCard({ note, signedIn }: { note: FeedNote; signedIn: boolean }) {
   const [message, setMessage] = useState("");
   const [vote, setVote] = useState<number | null>(note.ownVote);
+  const [outcome, setOutcome] = useState<"success" | "error" | null>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const artist = artists.find((a) => a.id === note.artist_id);
   function cast(value: number) {
+    if (!signedIn || pending) return;
+    setMessage("");
+    setOutcome(null);
     startTransition(async () => {
       try {
         const result = await submitVote(note.id, value);
         setMessage(result.message);
+        setOutcome(result.ok ? "success" : "error");
         if (result.ok) {
           setVote(value);
           router.refresh();
         }
       } catch {
+        setOutcome("error");
         setMessage("Your vote could not be saved. Please try again.");
       }
     });
@@ -57,7 +64,7 @@ function NoteCard({ note, signedIn }: { note: FeedNote; signedIn: boolean }) {
         <pre>{note.prompt}</pre>
       </details>
       <div className="vote-bar">
-        <div className="vote-controls">
+        <div className="vote-controls" aria-busy={pending}>
           <button
             type="button"
             aria-label={`Upvote ${note.title}`}
@@ -77,8 +84,10 @@ function NoteCard({ note, signedIn }: { note: FeedNote; signedIn: boolean }) {
             ↓ <span>{note.downvotes}</span>
           </button>
         </div>
-        <span>
-          {recordedVote !== null ? (
+        <span role="status" aria-live="polite" aria-atomic="true">
+          {pending ? (
+            <span className="vote-pending"><Spinner /> Saving vote…</span>
+          ) : recordedVote !== null ? (
             "VOTE RECORDED"
           ) : signedIn ? (
             "ONE LISTENER, ONE VOTE"
@@ -89,8 +98,9 @@ function NoteCard({ note, signedIn }: { note: FeedNote; signedIn: boolean }) {
           )}
         </span>
       </div>
-      <p className="vote-message" role="status" aria-live="polite">
-        {message}
+      <p className={`vote-message ${!pending && message ? `action-feedback ${outcome === "success" ? "is-success" : "is-error"}` : ""}`} role="status" aria-live="polite" aria-atomic="true">
+        {!pending && outcome === "success" && <span className="feedback-check" aria-hidden="true">✓</span>}
+        {!pending && message}
       </p>
     </article>
   );
@@ -105,15 +115,39 @@ export default function Wall({
   issue: string | null;
 }) {
   const [sort, setSort] = useState("Fresh drops");
-  const [feed, setFeed] = useState({ notes: initialNotes, signedIn: initialSignedIn, issue: initialIssue });
+  const [browserFeed, setBrowserFeed] = useState<{
+    sourceNotes: FeedNote[];
+    sourceSignedIn: boolean;
+    sourceIssue: string | null;
+    result: Feed;
+  } | null>(null);
+  const settled = browserFeed !== null &&
+    browserFeed.sourceNotes === initialNotes &&
+    browserFeed.sourceSignedIn === initialSignedIn &&
+    browserFeed.sourceIssue === initialIssue;
+  const refreshing = !settled;
   // Keep server-rendered content available immediately, then refresh through
   // browser-visible Supabase REST/RPC calls on mount and after server actions.
   useEffect(() => {
     let active = true;
-    getBrowserFeed().then((result) => { if (active) setFeed(result); });
+    function complete(result: Feed) {
+      if (active) setBrowserFeed({
+        sourceNotes: initialNotes,
+        sourceSignedIn: initialSignedIn,
+        sourceIssue: initialIssue,
+        result,
+      });
+    }
+    getBrowserFeed().then(complete).catch(() => complete({
+      notes: initialNotes,
+      signedIn: initialSignedIn,
+      issue: "The community wall could not refresh. Please try again.",
+    }));
     return () => { active = false; };
   }, [initialNotes, initialSignedIn, initialIssue]);
-  const { notes, signedIn, issue } = feed;
+  const { notes, signedIn, issue } = settled && browserFeed
+    ? browserFeed.result
+    : { notes: initialNotes, signedIn: initialSignedIn, issue: initialIssue };
   const sorted = [...notes].sort((a, b) =>
     sort === "Crowd favorites"
       ? b.score - a.score || b.created_at.localeCompare(a.created_at)
@@ -146,10 +180,20 @@ export default function Wall({
           ))}
         </div>
         <span className="catalog-note">
-          Latest 60 notes · {notes.length} on the wall
+          {refreshing && !notes.length ? "Loading latest notes…" : `Latest 60 notes · ${notes.length} on the wall`}
         </span>
       </div>
-      {issue ? (
+      <div role="status" aria-live="polite" aria-atomic="true">
+        {refreshing && (
+          <p className="action-feedback is-pending">
+            <Spinner /> {notes.length ? "Refreshing community notes and votes…" : "Loading community notes…"}
+          </p>
+        )}
+      </div>
+      <div aria-busy={refreshing}>
+      {refreshing && !notes.length ? (
+        <NoteSkeletons />
+      ) : issue ? (
         <div className="empty-wall">
           <span aria-hidden="true">◎</span>
           <h3>The next drop is on its way.</h3>
@@ -171,6 +215,7 @@ export default function Wall({
           ))}
         </div>
       )}
+      </div>
     </section>
   );
 }

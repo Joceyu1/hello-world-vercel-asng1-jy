@@ -46,6 +46,8 @@ export default async function MembersPage() {
       <p className="eyebrow account-kicker">YOUR LISTENING ROOM</p>
       <h1>You’re on the guest list.</h1>
 
+      <p>Signed in successfully with your Columbia Google account.</p>
+
       <p style={{ marginTop: "20px" }}>
         Welcome, {profile.first_name} {profile.last_name}!
       </p>

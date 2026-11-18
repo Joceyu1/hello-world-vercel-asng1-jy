@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { Spinner } from "@/app/components/feedback";
 import { createClient } from "@/lib/supabase/client";
 
 type Props = {
@@ -23,10 +24,20 @@ export default function ProfileForm({
   const [lastName, setLastName] = useState(initialLastName);
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [operation, setOperation] = useState<"saving" | "uploading" | "signing-out" | null>(null);
+  const actionInProgress = useRef(false);
+  const busy = operation !== null;
+  const progressMessage = operation === "uploading"
+    ? "Uploading your profile photo…"
+    : operation === "saving"
+      ? "Saving your profile…"
+      : operation === "signing-out"
+        ? "Signing out…"
+        : "";
 
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (actionInProgress.current) return;
     setMessage("");
 
     const first = firstName.trim();
@@ -51,7 +62,8 @@ export default function ProfileForm({
       }
     }
 
-    setBusy(true);
+    actionInProgress.current = true;
+    setOperation(file ? "uploading" : "saving");
 
     try {
       const supabase = createClient();
@@ -81,6 +93,7 @@ export default function ProfileForm({
         }
 
         updates.avatar_path = path;
+        setOperation("saving");
       }
 
       const { error } = await supabase
@@ -96,31 +109,38 @@ export default function ProfileForm({
 
       // Load the profile again to display the saved values and photo.
       router.refresh();
-      setBusy(false);
+      setFirstName(first);
+      setLastName(last);
       setMessage("Profile saved.");
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "Could not save profile.",
       );
-      setBusy(false);
+    } finally {
+      actionInProgress.current = false;
+      setOperation(null);
     }
   }
 
   async function signOut() {
-    setBusy(true);
+    if (actionInProgress.current) return;
+    actionInProgress.current = true;
+    setOperation("signing-out");
     setMessage("");
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      setMessage(error.message);
-      setBusy(false);
-      return;
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setMessage("Signed out. Opening the sign-in page…");
+      router.push("/login");
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not sign out. Please try again.");
+    } finally {
+      actionInProgress.current = false;
+      setOperation(null);
     }
-
-    router.push("/login");
-    router.refresh();
   }
 
   return (
@@ -137,7 +157,7 @@ export default function ProfileForm({
         />
       )}
 
-      <form onSubmit={saveProfile}>
+      <form onSubmit={saveProfile} aria-busy={busy} aria-describedby="profile-action-status">
         <p>
           <label htmlFor="first-name">First name</label>
           <br />
@@ -183,18 +203,22 @@ export default function ProfileForm({
         </p>
 
         <button type="submit" disabled={busy}>
-          {busy ? "Please wait…" : "Save profile"}
+          {(operation === "saving" || operation === "uploading") && <Spinner />}
+          {operation === "uploading" ? "Uploading photo…" : operation === "saving" ? "Saving profile…" : "Save profile"}
         </button>
-
-        <p role="status">{message}</p>
       </form>
+
+      <p id="profile-action-status" role="status" aria-live="polite" aria-atomic="true">
+        {progressMessage || message}
+      </p>
 
       <p>
         <Link href="/members">Go to your listening room</Link>
       </p>
 
-      <button type="button" onClick={signOut} disabled={busy}>
-        Sign out
+      <button type="button" onClick={signOut} disabled={busy} aria-busy={operation === "signing-out"} aria-describedby="profile-action-status">
+        {operation === "signing-out" && <Spinner />}
+        {operation === "signing-out" ? "Signing out…" : "Sign out"}
       </button>
     </>
   );

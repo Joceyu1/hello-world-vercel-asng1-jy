@@ -44,6 +44,8 @@ export default async function ProfilePage() {
     <section className="account-page">
       <h1>Your profile</h1>
 
+      <p>Signed in with your Columbia Google account.</p>
+
       {needsNames && (
         <p>Please enter your first and last name to finish signing up.</p>
       )}

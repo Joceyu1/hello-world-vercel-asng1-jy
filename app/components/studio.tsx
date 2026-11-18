@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { artists, popGroupArtistIds } from "@/lib/music/artists";
 import { moods, scenes } from "@/lib/music/prompt";
 import { publishNote } from "@/app/actions/studio";
+import { NoteSkeletons, Spinner } from "@/app/components/feedback";
 export default function Studio({ signedIn, popGroupsReady }: { signedIn: boolean; popGroupsReady: boolean }) {
   const [artistId, setArtistId] = useState("tribe");
   const [mood, setMood] = useState<string>(moods[0]);
@@ -17,6 +18,7 @@ export default function Studio({ signedIn, popGroupsReady }: { signedIn: boolean
   const router = useRouter();
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!signedIn || pending) return;
     setMessage("");
     setSuccess(false);
     startTransition(async () => {
@@ -130,7 +132,10 @@ export default function Studio({ signedIn, popGroupsReady }: { signedIn: boolean
               className="button button-lime generate-button"
               type="submit"
             >
-              {pending ? "Recording your B-side…" : "Generate & publish a note"}
+              <span className="feedback-label">
+                {pending && <Spinner />}
+                {pending ? "Recording your B-side…" : "Generate & publish a note"}
+              </span>
               <span aria-hidden="true">
                 <ArrowIcon />
               </span>
@@ -150,20 +155,28 @@ export default function Studio({ signedIn, popGroupsReady }: { signedIn: boolean
           UTC. Published notes go straight to the community wall.
         </p>
         <p
-          className={success ? "form-message success" : "form-message"}
+          className={`form-message ${pending ? "action-feedback is-pending" : success ? "action-feedback is-success success" : message ? "action-feedback is-error" : ""}`}
           role="status"
           aria-live="polite"
+          aria-atomic="true"
         >
+          {pending && <Spinner />}
+          {!pending && success && <span className="feedback-check" aria-hidden="true">✓</span>}
           {pending
             ? "Making your note. This can take up to a minute. Keep this page open."
             : message}
-          {success && (
+          {!pending && success && (
             <>
               {" "}
               <a href="#wall">See your note →</a>
             </>
           )}
         </p>
+        {pending && (
+          <div className="studio-pending-preview" aria-hidden="true">
+            <NoteSkeletons count={1} compact />
+          </div>
+        )}
       </form>
     </section>
   );

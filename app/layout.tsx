@@ -8,6 +8,7 @@ import "@fontsource/space-mono/latin-700.css";
 import "./globals.css";
 import "./street-theme.css";
 import "./genre-tabs.css";
+import "./feedback.css";
 export const metadata: Metadata = {
   title: "SIDE B — Off the wall. On repeat.",
   description:

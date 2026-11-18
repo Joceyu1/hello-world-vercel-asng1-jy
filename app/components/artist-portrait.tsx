@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { artistPhotos } from "@/lib/music/artist-photos";
+import { Spinner } from "@/app/components/feedback";
 
 export default function ArtistPortrait({
   artistId,
@@ -17,12 +18,14 @@ export default function ArtistPortrait({
 }) {
   const entry = artistPhotos[artistId];
   const [imageIndex, setImageIndex] = useState(0);
+  const [loadedSource, setLoadedSource] = useState<string | null>(null);
   const photo =
     imageIndex === 0 ? entry : imageIndex === 1 ? entry?.fallback : undefined;
   const credit = photo ?? entry;
+  const loading = Boolean(photo && loadedSource !== photo.src);
   return (
     <>
-      <div className={`record-art art-${artistId}`}>
+      <div className={`record-art art-${artistId}`} aria-busy={loading}>
         {photo ? (
           <Image
             src={photo.src}
@@ -35,11 +38,18 @@ export default function ArtistPortrait({
               objectPosition: photo.position,
             }}
             onError={() => setImageIndex((current) => current + 1)}
+            onLoad={() => setLoadedSource(photo.src)}
           />
         ) : (
           <div className="portrait-placeholder">
             <span>{name}</span>
             <small>Artist photo unavailable</small>
+          </div>
+        )}
+        {loading && (
+          <div className="portrait-loading" aria-hidden="true">
+            <Spinner />
+            <span>Loading artist photo…</span>
           </div>
         )}
         <span className="record-code">
