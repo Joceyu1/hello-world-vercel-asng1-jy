@@ -123,7 +123,7 @@ export default function Wall({
     <section id="wall" className="section wall">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">01 / THE COMMUNITY WALL · RATE THE B-SIDES</p>
+          <p className="eyebrow">02 / THE COMMUNITY WALL · RATE THE B-SIDES</p>
           <h2>Good taste is a team sport.</h2>
         </div>
         <p>

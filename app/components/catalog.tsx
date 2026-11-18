@@ -29,7 +29,7 @@ export default function Catalog() {
     <section id="collection" className="section collection">
       <div className="section-heading">
         <div>
-          <p className="eyebrow">02 / THE RECORD COLLECTION</p>
+          <p className="eyebrow">03 / THE RECORD COLLECTION</p>
           <h2>
             Crate-digging.
             <br />

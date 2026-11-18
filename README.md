@@ -92,7 +92,7 @@ The blue genre strip is interactive: choose a browser-style tab to jump to the c
 
 Every song and the daily pick offer the existing Spotify or YouTube link alongside Apple Music and Last.fm search/discovery links. Playback and catalog availability depend on each external service; Last.fm is for discovery and is not a promise of full-track streaming. No music-service API credentials are required. The existing L.A. Boyz YouTube links are retained.
 
-The community wall now sits immediately after the hero/genre tabs, before the moodboard and full artist catalog. The header and hero link directly to ratings. These votes still rate community AI liner notes, with the existing Columbia sign-in requirement, one ballot per note, persistence, and RLS.
+The AI Mixtape Studio sits immediately after the hero/genre tabs, followed directly by the community wall so listeners encounter note creation before rating. The moodboard and full artist catalog follow the wall. The header and hero link directly to ratings. These votes still rate community AI liner notes, with the existing Columbia sign-in requirement, one ballot per note, persistence, and RLS.
 
 ## Validation
 

@@ -121,6 +121,7 @@ export default async function Home() {
         </div>
       </section>
       <GenreTabs variant="strip" />
+      <Studio signedIn={signedIn} popGroupsReady={popGroupsReady} />
       <Wall notes={notes} signedIn={signedIn} issue={issue} />
       <CityScenes />
       <div className="daily-drop">
@@ -137,7 +138,6 @@ export default async function Home() {
         <TrackLinks artist={dailyArtist} song={dailyArtist.songs[0]} />
       </div>
       <Catalog />
-      <Studio signedIn={signedIn} popGroupsReady={popGroupsReady} />
       <section className="closing">
         <div className="closing-photo-background" aria-hidden="true">
           <Image

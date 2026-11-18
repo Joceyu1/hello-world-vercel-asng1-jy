@@ -36,7 +36,7 @@ export default function Studio({ signedIn, popGroupsReady }: { signedIn: boolean
   return (
     <section id="studio" className="section studio">
       <div className="studio-intro">
-        <p className="eyebrow">03 / THE AI MIXTAPE STUDIO</p>
+        <p className="eyebrow">01 / THE AI MIXTAPE STUDIO</p>
         <h2>
           Your weekend.
           <br />A new B-side.
