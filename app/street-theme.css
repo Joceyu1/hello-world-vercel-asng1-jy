@@ -548,9 +548,101 @@ body {
   flex: 1;
 }
 
-.catalog-controls .search-box {
-  flex: 0 0 265px;
+.catalog-controls > .genre-browser {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+.catalog-heading {
+  align-items: flex-end;
+  gap: clamp(24px, 3vw, 44px);
+}
+
+.catalog-heading > div:first-child {
+  flex: 1 1 auto;
   min-width: 0;
+}
+
+.catalog-heading-tools {
+  display: flex;
+  flex: 0 1 clamp(280px, 29vw, 350px);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  width: clamp(280px, 29vw, 350px);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.catalog-heading-tools > p {
+  margin: 0;
+  color: #696456;
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+.catalog-heading .search-box {
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  gap: 10px;
+  padding: 9px 14px;
+  border: 2px solid var(--street-blue);
+  background: #fffaf0;
+  box-shadow: 4px 4px 0 var(--street-blue);
+}
+
+.catalog-heading .search-box:focus-within {
+  border-color: #23221f;
+  box-shadow: 4px 4px 0 #23221f;
+  outline: 3px solid #f72593;
+  outline-offset: 4px;
+}
+
+.catalog-heading .search-box > span:not(.sr-only) {
+  flex: 0 0 auto;
+  color: var(--street-blue);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.catalog-heading .search-box input {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 0;
+  padding: 3px 0;
+  color: #23221f;
+  font: 700 12px/1.6 "Space Mono", "Courier New", monospace;
+}
+
+.catalog-heading .search-box input:focus-visible {
+  /* The whole search control carries the visible keyboard-focus outline. */
+  outline: none;
+}
+
+.catalog-heading .search-box input::placeholder {
+  color: #514d44;
+  opacity: 1;
+}
+
+@media (max-width: 800px) {
+  .catalog-heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+  }
+
+  .catalog-heading-tools {
+    flex: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 540px) {
+  .catalog-heading-tools > p br {
+    display: none;
+  }
 }
 
 .catalog-results {
@@ -1051,9 +1143,6 @@ body {
   }
   .scene-source-note {
     font-size: 8px;
-  }
-  .catalog-controls .search-box {
-    flex: auto;
   }
   .artist-info > p {
     min-height: 96px;

@@ -27,7 +27,7 @@ export default function Catalog() {
   );
   return (
     <section id="collection" className="section collection">
-      <div className="section-heading">
+      <div className="section-heading catalog-heading">
         <div>
           <p className="eyebrow">03 / THE RECORD COLLECTION</p>
           <h2>
@@ -36,24 +36,26 @@ export default function Catalog() {
             <span className="street-accent">No gatekeeping.</span>
           </h2>
         </div>
-        <p>
-          {artists.length} artists. {trackCount} essentials.{" "}
-          <br />
-          Find your next repeat listen.
-        </p>
+        <div className="catalog-heading-tools">
+          <p>
+            {artists.length} artists. {trackCount} essentials.{" "}
+            <br />
+            Find your next repeat listen.
+          </p>
+          <label className="search-box">
+            <span className="sr-only">Search artists or songs</span>
+            <span aria-hidden="true">⌕</span>
+            <input
+              type="search"
+              placeholder="Find an artist or track…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+        </div>
       </div>
       <div className="catalog-controls">
         <GenreTabs variant="catalog" />
-        <label className="search-box">
-          <span className="sr-only">Search artists or songs</span>
-          <span aria-hidden="true">⌕</span>
-          <input
-            type="search"
-            placeholder="Find an artist or track…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </label>
       </div>
       <p className="catalog-note">
         Hand-picked essentials from the late 80s and 90s, plus early-2000s pop
