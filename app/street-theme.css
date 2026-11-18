@@ -856,6 +856,12 @@ body {
   border-color: #24211b;
 }
 
+.vote-controls button.vote-downvote[aria-pressed="true"] {
+  color: #141613;
+  background: #ff4d4d;
+  border-color: #24211b;
+}
+
 .vote-bar > span,
 .vote-message {
   color: #5e5849;

@@ -76,6 +76,7 @@ function NoteCard({ note, signedIn }: { note: FeedNote; signedIn: boolean }) {
           </button>
           <button
             type="button"
+            className="vote-downvote"
             aria-label={`Downvote ${note.title}`}
             aria-pressed={recordedVote === -1}
             disabled={!signedIn || pending || recordedVote === -1}
